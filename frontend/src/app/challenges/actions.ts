@@ -309,3 +309,26 @@ export async function answerClarification(form: FormData): Promise<void> {
     },
   );
 }
+
+/**
+ * Background save for the builder. It returns the new record version instead of
+ * redirecting, so the open form keeps its place and its next save is not stale.
+ */
+export async function autosaveChallenge(
+  form: FormData,
+): Promise<{ ok: true; version: number } | { ok: false; message: string }> {
+  const id = text(form, "challenge_id");
+  try {
+    const saved = await apiPut<Challenge>(
+      "/challenges/" + id,
+      challengeBody(form),
+      ifMatch(text(form, "version")),
+    );
+    return { ok: true, version: saved.version };
+  } catch (error) {
+    return {
+      ok: false,
+      message: error instanceof Error ? error.message : "The draft could not be saved.",
+    };
+  }
+}

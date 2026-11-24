@@ -16,7 +16,7 @@ import {
   text,
   withResult,
 } from "@/lib/forms";
-import type { Application, SimulationRun } from "@/lib/types";
+import type { Application } from "@/lib/types";
 
 /** Applications, evaluation, pilot design, agreement, metrics, payments, evidence, scale. */
 
@@ -563,4 +563,3 @@ export async function refreshSimulationView(form: FormData): Promise<void> {
   redirect("/pilots/" + pilotId + "/design?run=" + runId);
 }
 
-export type { SimulationRun };

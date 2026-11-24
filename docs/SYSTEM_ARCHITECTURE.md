@@ -460,7 +460,7 @@ Next.js 14 App Router, React Server Components, TypeScript strict, Tailwind.
 
 - ~44 pages, one per job, grouped by flow
 - Server Actions for writes, so there is no client-side API duplication
-- `middleware.ts` refreshes an expired access token silently
+- `proxy.ts` (Next 16's middleware) refreshes an expired access token silently
 - `not-found.tsx` and `error.tsx` give plain, actionable boundaries
 - The home page **is** the task inbox: overdue first, then by deadline
 - Light and dark themes from one set of semantic colour tokens; both audited to WCAG 2.1 AA

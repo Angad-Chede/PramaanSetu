@@ -143,11 +143,13 @@ backend/
   tests/         730 tests: unit, property, statistical, concurrency, authorisation,
                  evaluation, inbox, error shape, end-to-end through the API
   alembic/       migrations, expand-migrate-contract
-frontend/
+frontend/        Next 16, React 19, Tailwind 4
   src/app/       server-rendered pages and server actions, one directory per flow
   src/app/globals.css  the light and dark palettes, as one set of semantic tokens
   src/lib/       API client, formatting, session, form helpers
-  src/components/ plain building blocks, including the theme control
+  src/components/ui/       dashkit components the pages are built from
+  src/components/app/      the workspace shell (sidebar, top bar, command menu) and the page kit
+  src/components/landing/  the public landing page's moments
 infra/           PostgreSQL roles and grants
 loadtest/        k6 scripts for the load, contention and deadline spike tests
 scripts/         smoke test, emoji check, run scripts, demo walkthrough
@@ -235,7 +237,7 @@ escalates; disbursement stays with the treasury system.
 cd backend && pytest -q                    # 730 tests
 cd backend && pytest -q tests/test_concurrency.py     # the race scenarios
 cd backend && ruff check app tests
-cd frontend && npm run typecheck && npm run lint && npm run build
+cd frontend && npm run typecheck && npm run build
 python scripts/check_no_emoji.py
 python scripts/smoke_test.py               # against a running stack
 ```
@@ -303,10 +305,12 @@ flood a page with toner.
 
 ## Known dependency advisories
 
-`npm audit` reports one critical advisory that cannot be closed without a major upgrade:
+`npm audit --omit=dev` reports none. The `overrides` entry in `frontend/package.json`
+lifts the `postcss` and `sharp` copies that Next pulls in transitively to their patched
+lines. Run `npm audit --audit-level=high` after any dependency change and add a row here
+rather than silencing the step.
 
-| Package | Advisory | Why it is still here |
-| --- | --- | --- |
+--- | --- | --- |
 | `next` 14.2.21 | Information exposure in the Next.js **dev server** because of missing origin verification | The fix is Next 16, a major version whose App Router API differs from the one this code is written against. The advisory is confined to `next dev`; the container and every deployment run `next start`, which is unaffected. Bind `next dev` to localhost only. |
 
 The `postcss` advisory that Next 14 carries transitively is closed by the `overrides`

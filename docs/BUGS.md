@@ -202,7 +202,7 @@ document every other error uses and every client renderer expects. Now handled, 
 **6. Sessions expired mid-form and bounced people to sign-in**
 
 The access token lasts 15 minutes and server components cannot set cookies, so there was
-nowhere to refresh it. `frontend/src/middleware.ts` now refreshes silently.
+nowhere to refresh it. `frontend/src/proxy.ts` (Next 16's middleware) now refreshes silently.
 
 ### Medium
 

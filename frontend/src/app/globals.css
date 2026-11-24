@@ -1,381 +1,230 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@import "tw-animate-css";
 
-/*
- * Two themes, one set of names.
- *
- * Every colour in the interface is a semantic token: ink is text, paper is a surface,
- * line is a border, brand is the department's own colour, and good/warn/bad are status.
- * A theme is nothing more than a different set of values for those names, so no page,
- * component or utility class changes between light and dark.
- *
- * Values are RGB channels so Tailwind's opacity modifiers keep working.
- * Every text-on-surface pairing below is checked against WCAG 2.1 AA at 4.5:1 (UX-07).
- */
+@custom-variant dark (&:is(.dark *));
+
+/* dashkit tokens: soft neutral fills, hairline borders, inset highlights, one saffron accent. */
+:root {
+  --background: #fafafc;
+  --foreground: #1c1c1e;
+  --card: #ffffff;
+  --card-foreground: #1c1c1e;
+  --popover: #ffffff;
+  --popover-foreground: #1c1c1e;
+  --primary: #1c1c1e;
+  --primary-foreground: #ffffff;
+  --secondary: #f4f4f9;
+  --secondary-foreground: #1c1c1e;
+  --muted: #f4f4f9;
+  --muted-foreground: #6e6d7a;
+  --accent: #f4f4f9;
+  --accent-foreground: #1c1c1e;
+  --destructive: #ff3b30;
+  --destructive-foreground: #ffffff;
+  --border: #e7e7ef;
+  --input: #e7e7ef;
+  --ring: #a5a4b0;
+
+  --surface: #f4f4f9;
+  --surface-hover: #ededf3;
+  --recess: #e7e7ef;
+  --glyph: #6e6d7a;
+  --brand: #fc4c01;
+  --brand-foreground: #ffffff;
+  --success: #34c759;
+  --warning: #ff9500;
+  --info: #007aff;
+  /* status text that sits on its own tint (bg-success/12 and friends) at 4.5:1 or better */
+  --success-ink: color-mix(in srgb, var(--success) 60%, black);
+  --warning-ink: color-mix(in srgb, var(--warning) 60%, black);
+  --info-ink: color-mix(in srgb, var(--info) 80%, black);
+  --destructive-ink: color-mix(in srgb, var(--destructive) 75%, black);
+  --brand-ink: color-mix(in srgb, var(--brand) 75%, black);
+  --chart-4-ink: color-mix(in srgb, var(--chart-4) 80%, black);
+
+  --chart-1: #fc4c01;
+  --chart-2: #007aff;
+  --chart-3: #34c759;
+  --chart-4: #00a99d;
+  --chart-5: #ffcc00;
+
+  --sidebar: #f4f4f9;
+  --sidebar-foreground: #1c1c1e;
+  --sidebar-primary: #1c1c1e;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e7e7ef;
+  --sidebar-accent-foreground: #1c1c1e;
+  --sidebar-border: #e7e7ef;
+  --sidebar-ring: #a5a4b0;
+
+  --radius: 0.875rem;
+
+  --shadow-lift: 0 0.5px 1px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.08),
+    inset 0 0.5px 0 rgba(255, 255, 255, 0.9);
+  --shadow-float: 0 0 0 0.5px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.06),
+    0 16px 32px -8px rgba(0, 0, 0, 0.1);
+  --shadow-card: 0 0 0 0.5px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.dark {
+  --background: #0f0f10;
+  --foreground: #f5f5f7;
+  --card: #1c1c1c;
+  --card-foreground: #f5f5f7;
+  --popover: #232323;
+  --popover-foreground: #f5f5f7;
+  --primary: #f5f5f7;
+  --primary-foreground: #1c1c1e;
+  --secondary: #262626;
+  --secondary-foreground: #f5f5f7;
+  --muted: #262626;
+  --muted-foreground: #9b9aa7;
+  --accent: #2c2c2c;
+  --accent-foreground: #f5f5f7;
+  --destructive: #ff453a;
+  --destructive-foreground: #ffffff;
+  --border: #2a2a2a;
+  --input: #2c2c2e;
+  --ring: #6e6d78;
+
+  --surface: #262626;
+  --surface-hover: #2c2c2c;
+  --recess: #1b1b1b;
+  --glyph: #9b9aa7;
+  --brand: #ff5f2e;
+  --brand-foreground: #ffffff;
+  --success: #30d158;
+  --warning: #ff9f0a;
+  --info: #0a84ff;
+  --success-ink: var(--success);
+  --warning-ink: var(--warning);
+  --info-ink: color-mix(in srgb, var(--info) 85%, white);
+  --destructive-ink: color-mix(in srgb, var(--destructive) 90%, white);
+  --brand-ink: var(--brand);
+  --chart-4-ink: color-mix(in srgb, var(--chart-4) 90%, white);
+
+  --chart-1: #ff5f2e;
+  --chart-2: #0a84ff;
+  --chart-3: #30d158;
+  --chart-4: #2dd4bf;
+  --chart-5: #ffd60a;
+
+  --sidebar: #141414;
+  --sidebar-foreground: #f5f5f7;
+  --sidebar-primary: #f5f5f7;
+  --sidebar-primary-foreground: #1c1c1e;
+  --sidebar-accent: #262626;
+  --sidebar-accent-foreground: #f5f5f7;
+  --sidebar-border: #232323;
+  --sidebar-ring: #6e6d78;
+
+  --shadow-lift: 0 0.5px 1px rgba(0, 0, 0, 0.35), 0 1.5px 4px rgba(0, 0, 0, 0.25),
+    inset 0 0.5px 0 rgba(255, 255, 255, 0.07);
+  --shadow-float: 0 0 0 0.5px rgba(255, 255, 255, 0.08), 0 4px 12px rgba(0, 0, 0, 0.4),
+    0 16px 32px -8px rgba(0, 0, 0, 0.5);
+  --shadow-card: 0 0 0 0.5px rgba(255, 255, 255, 0.06), 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-recess: var(--recess);
+  --color-glyph: var(--glyph);
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
+  --color-success-ink: var(--success-ink);
+  --color-warning-ink: var(--warning-ink);
+  --color-info-ink: var(--info-ink);
+  --color-destructive-ink: var(--destructive-ink);
+  --color-brand-ink: var(--brand-ink);
+  --color-chart-4-ink: var(--chart-4-ink);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --radius-sm: calc(var(--radius) - 6px);
+  --radius-md: calc(var(--radius) - 4px);
+  --radius-lg: calc(var(--radius) - 2px);
+  --radius-xl: var(--radius);
+  --radius-2xl: calc(var(--radius) + 2px);
+  --radius-3xl: calc(var(--radius) + 8px);
+
+  --shadow-lift: var(--shadow-lift);
+  --shadow-float: var(--shadow-float);
+  --shadow-card: var(--shadow-card);
+
+  --font-sans: var(--font-inter), Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
+  --font-display: var(--font-display-face), var(--font-inter), ui-sans-serif, sans-serif;
+
+  --ease-ios: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
 @layer base {
-  :root {
-    color-scheme: light;
-
-    --ink: 21 25 30;
-    --ink-soft: 58 66 75;
-    --ink-muted: 88 99 110;
-    --ink-faint: 133 142 152;
-
-    --paper: 255 255 255;
-    --paper-soft: 245 247 249;
-    --paper-sunk: 236 239 243;
-
-    --field: 255 255 255;
-    --field-sunk: 241 244 247;
-
-    --line: 223 227 232;
-    --line-strong: 176 184 192;
-
-    --brand: 17 73 122;
-    --brand-dark: 11 50 85;
-    --brand-light: 232 240 247;
-    --brand-contrast: 255 255 255;
-
-    --good: 22 101 57;
-    --good-light: 230 243 235;
-    --warn: 132 85 0;
-    --warn-light: 252 242 223;
-    --bad: 155 28 28;
-    --bad-light: 252 235 235;
-
-    --shadow-card: 0 1px 2px 0 rgb(16 24 40 / 0.04), 0 1px 3px 0 rgb(16 24 40 / 0.06);
-    --shadow-raised: 0 2px 4px -1px rgb(16 24 40 / 0.06), 0 4px 10px -2px rgb(16 24 40 / 0.08);
-    --shadow-overlay: 0 8px 24px -4px rgb(16 24 40 / 0.12), 0 2px 6px -2px rgb(16 24 40 / 0.06);
-
-    --header-tint: 255 255 255;
+  * {
+    @apply border-border outline-ring/50;
   }
-
-  :root[data-theme="dark"] {
-    color-scheme: dark;
-
-    --ink: 229 236 243;
-    --ink-soft: 184 195 207;
-    --ink-muted: 142 153 166;
-    --ink-faint: 108 119 132;
-
-    /* The page is the darkest surface; a card sits above it, a well below it. */
-    --paper: 24 30 38;
-    --paper-soft: 14 18 24;
-    --paper-sunk: 32 39 48;
-
-    --field: 16 21 28;
-    --field-sunk: 24 30 38;
-
-    --line: 42 51 62;
-    --line-strong: 65 77 91;
-
-    /* Navy is unreadable on a dark surface, so the brand lightens rather than darkens. */
-    --brand: 116 175 229;
-    --brand-dark: 152 199 240;
-    --brand-light: 20 41 62;
-    --brand-contrast: 11 18 26;
-
-    --good: 106 208 152;
-    --good-light: 17 46 31;
-    --warn: 229 183 94;
-    --warn-light: 52 40 16;
-    --bad: 244 148 148;
-    --bad-light: 59 27 27;
-
-    --shadow-card: 0 1px 2px 0 rgb(0 0 0 / 0.36);
-    --shadow-raised: 0 2px 6px -1px rgb(0 0 0 / 0.44);
-    --shadow-overlay: 0 10px 28px -6px rgb(0 0 0 / 0.56);
-
-    --header-tint: 24 30 38;
-  }
-
   html {
-    -webkit-text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
-
   body {
-    @apply bg-paper-soft text-ink antialiased;
-    font-size: 15px;
-    line-height: 1.55;
-    font-feature-settings: "cv05" 1, "ss01" 1;
+    @apply bg-background text-foreground;
+    font-feature-settings: "cv11", "ss01";
   }
-
-  /* Focus must always be visible: keyboard users navigate every flow (UX-07). */
-  :focus-visible {
-    @apply outline-none ring-2 ring-brand ring-offset-2 ring-offset-paper;
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
   }
-
-  h1 {
-    @apply text-[1.6rem] font-semibold leading-tight tracking-tight text-ink;
-  }
-
-  h2 {
-    @apply text-[1.0625rem] font-semibold tracking-tight text-ink;
-  }
-
-  h3 {
-    @apply text-base font-semibold text-ink;
-  }
-
-  a {
-    @apply text-brand underline underline-offset-2 transition-colors;
-    text-decoration-thickness: from-font;
-  }
-
-  a:hover {
-    @apply text-brand-dark;
-  }
-
-  table {
-    @apply w-full border-collapse text-sm;
-  }
-
-  th {
-    @apply border-b border-line bg-paper-sunk px-3 py-2.5 text-left align-top text-2xs font-semibold uppercase tracking-wide text-ink-muted;
-  }
-
-  td {
-    @apply border-b border-line px-3 py-2.5 align-top;
-  }
-
-  tbody tr {
-    @apply transition-colors;
-  }
-
-  tbody tr:hover {
-    @apply bg-paper-soft;
-  }
-
-  tbody tr:last-child td {
-    @apply border-b-0;
-  }
-
-  input,
-  select,
-  textarea {
-    @apply w-full rounded border border-line-strong bg-field px-3 py-2 text-ink shadow-none transition-colors;
-  }
-
-  input:hover:not(:disabled),
-  select:hover:not(:disabled),
-  textarea:hover:not(:disabled) {
-    @apply border-ink-faint;
-  }
-
-  input::placeholder,
-  textarea::placeholder {
-    @apply text-ink-faint;
-  }
-
-  input:disabled,
-  select:disabled,
-  textarea:disabled {
-    @apply cursor-not-allowed bg-field-sunk text-ink-muted;
-  }
-
-  label {
-    @apply block text-sm font-medium text-ink;
-  }
-
-  fieldset {
-    @apply border-0 p-0;
-  }
-
   ::selection {
-    @apply bg-brand-light text-brand-dark;
+    background: color-mix(in oklab, var(--brand) 22%, transparent);
   }
 }
 
-@layer components {
-  .skip-link {
-    @apply sr-only;
-  }
-
-  .skip-link:focus {
-    @apply not-sr-only fixed left-3 top-3 z-50 rounded bg-brand px-4 py-2 text-brand-contrast no-underline shadow-overlay;
-  }
-
-  .card {
-    @apply rounded-lg border border-line bg-paper shadow-card;
-  }
-
-  .card-pad {
-    @apply p-4 sm:p-5;
-  }
-
-  .card-interactive {
-    @apply transition-shadow hover:shadow-raised;
-  }
-
-  .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded border px-4 py-2 text-sm font-medium no-underline transition-all;
-    min-height: 40px;
-  }
-
-  .btn:active:not(:disabled) {
-    transform: translateY(0.5px);
-  }
-
-  .btn-primary {
-    @apply border-brand bg-brand text-brand-contrast shadow-card hover:border-brand-dark hover:bg-brand-dark hover:text-brand-contrast;
-  }
-
-  .btn-secondary {
-    @apply border-line-strong bg-paper text-ink shadow-card hover:border-ink-faint hover:bg-paper-sunk hover:text-ink;
-  }
-
-  .btn-danger {
-    @apply border-bad bg-paper text-bad shadow-card hover:bg-bad-light hover:text-bad;
-  }
-
-  .btn-quiet {
-    @apply border-transparent bg-transparent text-ink-soft hover:bg-paper-sunk hover:text-ink;
-  }
-
-  .btn:disabled {
-    @apply cursor-not-allowed border-line bg-paper-sunk text-ink-faint shadow-none;
-  }
-
-  .field {
-    @apply space-y-1.5;
-  }
-
-  .help {
-    @apply text-sm text-ink-muted;
-  }
-
-  .error-text {
-    @apply text-sm text-bad;
-  }
-
-  .pill {
-    @apply inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium;
-  }
-
-  /* The dot repeats the status the words already carry; it never replaces them. */
-  .pill-dot {
-    @apply h-1.5 w-1.5 shrink-0 rounded-full bg-current;
-  }
-
-  .pill-neutral {
-    @apply border-line-strong bg-paper-sunk text-ink-soft;
-  }
-
-  .pill-good {
-    @apply border-good/35 bg-good-light text-good;
-  }
-
-  .pill-warn {
-    @apply border-warn/35 bg-warn-light text-warn;
-  }
-
-  .pill-bad {
-    @apply border-bad/35 bg-bad-light text-bad;
-  }
-
-  /* The top bar stays put: the task inbox is never more than one click away (UX-02). */
-  .app-header {
-    @apply sticky top-0 z-40 border-b border-line backdrop-blur-md;
-    background-color: rgb(var(--header-tint) / 0.85);
-  }
-
-  @supports not (backdrop-filter: blur(1px)) {
-    .app-header {
-      background-color: rgb(var(--header-tint));
-    }
-  }
-
-  .nav-link {
-    @apply relative rounded px-2 py-1.5 text-sm font-medium text-ink-soft no-underline transition-colors hover:bg-paper-sunk hover:text-ink hover:no-underline;
-  }
-
-  .nav-link-active {
-    @apply bg-brand-light text-brand hover:bg-brand-light hover:text-brand;
-  }
-
-  .prose-block p {
-    @apply max-w-prose;
-  }
-
-  .num {
-    @apply font-mono tabular-nums;
-  }
-
-  /* A single figure quoted large: the platform counters and score headlines. */
-  .stat {
-    @apply num text-2xl font-semibold tracking-tight text-ink;
-  }
-
-  .stat-label {
-    @apply text-2xs font-medium uppercase tracking-wide text-ink-muted;
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
   }
 }
 
-/*
- * Printed records and exports should not carry interface chrome.
- *
- * A record printed from the dark theme would come out as white text on a black page,
- * which wastes toner and is unreadable once photocopied into a file. Print is always
- * the light palette, whichever theme is on screen.
- */
-@media print {
-  :root,
-  :root[data-theme="dark"] {
-    color-scheme: light;
-
-    --ink: 21 25 30;
-    --ink-soft: 58 66 75;
-    --ink-muted: 88 99 110;
-    --ink-faint: 133 142 152;
-
-    --paper: 255 255 255;
-    --paper-soft: 255 255 255;
-    --paper-sunk: 240 242 245;
-
-    --field: 255 255 255;
-    --field-sunk: 241 244 247;
-
-    --line: 200 206 213;
-    --line-strong: 150 158 167;
-
-    --brand: 17 73 122;
-    --brand-dark: 11 50 85;
-    --brand-light: 237 243 248;
-    --brand-contrast: 255 255 255;
-
-    --good: 22 101 57;
-    --good-light: 237 246 240;
-    --warn: 132 85 0;
-    --warn-light: 253 246 232;
-    --bad: 155 28 28;
-    --bad-light: 253 240 240;
-
-    --shadow-card: none;
-    --shadow-raised: none;
-    --shadow-overlay: none;
-
-    --header-tint: 255 255 255;
-  }
-
-  .no-print {
-    display: none !important;
-  }
-
-  .app-header {
-    position: static;
-  }
-
-  .card {
-    @apply shadow-none;
-  }
-
-  body {
-    @apply bg-paper;
-  }
-}
-
-/* Respect a stated preference for less movement. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -383,6 +232,64 @@
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
   }
+}
+
+@utility text-balance-safe {
+  text-wrap: balance;
+}
+
+/* the hairline grid behind the public pages, drawn once and masked to fade out */
+@utility bg-grid {
+  background-image: linear-gradient(to right, color-mix(in oklab, var(--foreground) 6%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, var(--foreground) 6%, transparent) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+@keyframes enter-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+@utility animate-enter {
+  animation: enter-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes job-sweep {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(300%);
+  }
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(calc(-1 * var(--mq-w) - var(--mq-gap)));
+  }
+}
+
+/* the hero enters once on load: lines rise, the picture settles from 1.05 */
+@keyframes hero-settle {
+  from {
+    opacity: 0;
+    transform: scale(1.05);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@utility animate-settle {
+  animation: hero-settle 1s cubic-bezier(0.22, 1, 0.36, 1) both;
 }

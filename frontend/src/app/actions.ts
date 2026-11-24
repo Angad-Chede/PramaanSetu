@@ -16,10 +16,10 @@ type SignInResult = {
   user: { roles: string[] };
 };
 
-function storeSessionCookies(response: Response) {
+async function storeSessionCookies(response: Response) {
   // The API sets HttpOnly session cookies. The web app runs on the same origin through
   // the rewrite in next.config.mjs, so they are copied across unchanged.
-  const jar = cookies();
+  const jar = await cookies();
   for (const raw of response.headers.getSetCookie()) {
     const [pair, ...attributes] = raw.split(";");
     const index = pair.indexOf("=");
@@ -81,7 +81,7 @@ export async function verifyCode(form: FormData): Promise<void> {
     if (next) params.set("next", next);
     redirect("/signin?" + params.toString());
   }
-  storeSessionCookies(response);
+  await storeSessionCookies(response);
   redirect(next);
 }
 
@@ -96,7 +96,7 @@ export async function signInAs(form: FormData): Promise<void> {
       "/signin?problem=" + encodeURIComponent(payload.detail ?? "That account was not found."),
     );
   }
-  storeSessionCookies(response);
+  await storeSessionCookies(response);
   redirect(next);
 }
 
@@ -106,7 +106,7 @@ export async function signOut(): Promise<void> {
   } catch {
     // Signing out locally is enough even if the API call fails.
   }
-  const jar = cookies();
+  const jar = await cookies();
   for (const name of ["ps_access", "ps_refresh", "ps_csrf"]) {
     jar.delete(name);
   }

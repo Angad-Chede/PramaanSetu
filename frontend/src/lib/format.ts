@@ -205,3 +205,13 @@ export function titleCase(value: string): string {
     .trim()
     .replace(/^./, (c) => c.toUpperCase());
 }
+
+/** Two initials for an avatar, skipping honorifics: "Dr Anjali Rao" is "AR". */
+export function initials(name: string): string {
+  return name
+    .split(/\s+/)
+    .filter((part) => part && !/^(prof(essor)?|dr|shri|smt)\.?$/i.test(part))
+    .slice(0, 2)
+    .map((part) => part[0].toUpperCase())
+    .join("");
+}

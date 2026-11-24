@@ -40,20 +40,20 @@ export class ApiError extends Error {
   }
 }
 
-function cookieHeader(): string {
-  return cookies()
+async function cookieHeader(): Promise<string> {
+  return (await cookies())
     .getAll()
     .map((c) => c.name + "=" + c.value)
     .join("; ");
 }
 
-function csrfToken(): string {
-  return cookies().get("ps_csrf")?.value ?? "";
+async function csrfToken(): Promise<string> {
+  return (await cookies()).get("ps_csrf")?.value ?? "";
 }
 
-function acceptLanguage(): string {
+async function acceptLanguage(): Promise<string> {
   try {
-    return headers().get("accept-language") ?? "en";
+    return (await headers()).get("accept-language") ?? "en";
   } catch {
     return "en";
   }
@@ -82,10 +82,10 @@ async function request<T>(
     cache,
     headers: {
       Accept: "application/json",
-      "Accept-Language": acceptLanguage(),
-      Cookie: cookieHeader(),
+      "Accept-Language": await acceptLanguage(),
+      Cookie: await cookieHeader(),
       ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
-      ...(method !== "GET" ? { "X-CSRF-Token": csrfToken() } : {}),
+      ...(method !== "GET" ? { "X-CSRF-Token": await csrfToken() } : {}),
       ...extraHeaders,
     },
     ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
@@ -174,7 +174,7 @@ export async function apiGetOptional<T>(path: string): Promise<T | null> {
 /** Raw fetch for binary downloads such as generated PDFs. */
 export async function apiFetchRaw(path: string): Promise<Response> {
   return fetch(API_ORIGIN + PREFIX + path, {
-    headers: { Cookie: cookieHeader() },
+    headers: { Cookie: await cookieHeader() },
     cache: "no-store",
   });
 }
