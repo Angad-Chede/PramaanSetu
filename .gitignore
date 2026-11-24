@@ -42,3 +42,5 @@ Thumbs.db
 
 # Process ids recorded by scripts/run.ps1 and scripts/run.sh
 .run/
+backend/demo/
+.vercel/

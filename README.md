@@ -107,6 +107,34 @@ cd frontend && npm install && npm run build && npm run start
 
 </details>
 
+<details>
+<summary>The serverless demo on Vercel</summary>
+
+Two projects: `frontend/` (Next.js, `API_ORIGIN` set to the API's address) and
+`backend/` (FastAPI through `backend/index.py`). A serverless instance has no disk
+and no process between requests, so the API's entry point:
+
+- copies a seeded SQLite snapshot into `/tmp` on cold start, and seeds one itself if
+  the snapshot is missing. Changes last as long as the instance does;
+- runs queued jobs and relays the outbox at the start of each request, in place
+  of the job runner and scheduler processes.
+
+Build the snapshot before each deploy, so its dates are current:
+
+```bash
+cd backend && rm -rf demo && mkdir demo
+export DATABASE_URL=sqlite+aiosqlite:///./demo/pramaansetu.db STORAGE_ROOT=./demo/files
+python -m app.seed --reset --quiet
+python -c "import asyncio; from app.workers.runner import drain; asyncio.run(drain())"
+vercel deploy --prod
+```
+
+`ENVIRONMENT=local` is what enables the one-click persona sign-in, so it belongs only
+on a deployment that holds nothing but seed data. Point `DATABASE_URL` at PostgreSQL
+for anything that must keep its records.
+
+</details>
+
 ---
 
 ## What the seed builds
