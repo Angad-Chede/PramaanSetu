@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+htmlcov/
+.coverage
+
+# Databases and generated artefacts
+*.db
+*.db-shm
+*.db-wal
+backend/var/
+backend/openapi.json
+
+# Node and Next.js
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+!.env.local.example
+
+# Logs from the run scripts
+*.log
+
+# Editors and operating systems
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Process ids recorded by scripts/run.ps1 and scripts/run.sh
+.run/

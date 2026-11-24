@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="PramaanSetu">
+  <title>PramaanSetu</title>
+  <!--
+    The same bridge mark the header draws, with fixed colours. A favicon is fetched by the
+    browser outside the page, so it cannot read the theme's CSS variables; these are the
+    brand navy and white from the light palette, which stay legible on a light or a dark
+    browser chrome.
+  -->
+  <rect width="32" height="32" rx="7" fill="#11497a" />
+  <g stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" fill="none">
+    <path d="M7 21.5V13M25 21.5V13" opacity="0.55" />
+    <path d="M7 13c4.6-4.4 13.4-4.4 18 0" />
+    <path d="M5.5 21.5h21" />
+  </g>
+</svg>

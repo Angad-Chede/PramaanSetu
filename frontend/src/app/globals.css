@@ -1,0 +1,388 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Two themes, one set of names.
+ *
+ * Every colour in the interface is a semantic token: ink is text, paper is a surface,
+ * line is a border, brand is the department's own colour, and good/warn/bad are status.
+ * A theme is nothing more than a different set of values for those names, so no page,
+ * component or utility class changes between light and dark.
+ *
+ * Values are RGB channels so Tailwind's opacity modifiers keep working.
+ * Every text-on-surface pairing below is checked against WCAG 2.1 AA at 4.5:1 (UX-07).
+ */
+@layer base {
+  :root {
+    color-scheme: light;
+
+    --ink: 21 25 30;
+    --ink-soft: 58 66 75;
+    --ink-muted: 88 99 110;
+    --ink-faint: 133 142 152;
+
+    --paper: 255 255 255;
+    --paper-soft: 245 247 249;
+    --paper-sunk: 236 239 243;
+
+    --field: 255 255 255;
+    --field-sunk: 241 244 247;
+
+    --line: 223 227 232;
+    --line-strong: 176 184 192;
+
+    --brand: 17 73 122;
+    --brand-dark: 11 50 85;
+    --brand-light: 232 240 247;
+    --brand-contrast: 255 255 255;
+
+    --good: 22 101 57;
+    --good-light: 230 243 235;
+    --warn: 132 85 0;
+    --warn-light: 252 242 223;
+    --bad: 155 28 28;
+    --bad-light: 252 235 235;
+
+    --shadow-card: 0 1px 2px 0 rgb(16 24 40 / 0.04), 0 1px 3px 0 rgb(16 24 40 / 0.06);
+    --shadow-raised: 0 2px 4px -1px rgb(16 24 40 / 0.06), 0 4px 10px -2px rgb(16 24 40 / 0.08);
+    --shadow-overlay: 0 8px 24px -4px rgb(16 24 40 / 0.12), 0 2px 6px -2px rgb(16 24 40 / 0.06);
+
+    --header-tint: 255 255 255;
+  }
+
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+
+    --ink: 229 236 243;
+    --ink-soft: 184 195 207;
+    --ink-muted: 142 153 166;
+    --ink-faint: 108 119 132;
+
+    /* The page is the darkest surface; a card sits above it, a well below it. */
+    --paper: 24 30 38;
+    --paper-soft: 14 18 24;
+    --paper-sunk: 32 39 48;
+
+    --field: 16 21 28;
+    --field-sunk: 24 30 38;
+
+    --line: 42 51 62;
+    --line-strong: 65 77 91;
+
+    /* Navy is unreadable on a dark surface, so the brand lightens rather than darkens. */
+    --brand: 116 175 229;
+    --brand-dark: 152 199 240;
+    --brand-light: 20 41 62;
+    --brand-contrast: 11 18 26;
+
+    --good: 106 208 152;
+    --good-light: 17 46 31;
+    --warn: 229 183 94;
+    --warn-light: 52 40 16;
+    --bad: 244 148 148;
+    --bad-light: 59 27 27;
+
+    --shadow-card: 0 1px 2px 0 rgb(0 0 0 / 0.36);
+    --shadow-raised: 0 2px 6px -1px rgb(0 0 0 / 0.44);
+    --shadow-overlay: 0 10px 28px -6px rgb(0 0 0 / 0.56);
+
+    --header-tint: 24 30 38;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-paper-soft text-ink antialiased;
+    font-size: 15px;
+    line-height: 1.55;
+    font-feature-settings: "cv05" 1, "ss01" 1;
+  }
+
+  /* Focus must always be visible: keyboard users navigate every flow (UX-07). */
+  :focus-visible {
+    @apply outline-none ring-2 ring-brand ring-offset-2 ring-offset-paper;
+  }
+
+  h1 {
+    @apply text-[1.6rem] font-semibold leading-tight tracking-tight text-ink;
+  }
+
+  h2 {
+    @apply text-[1.0625rem] font-semibold tracking-tight text-ink;
+  }
+
+  h3 {
+    @apply text-base font-semibold text-ink;
+  }
+
+  a {
+    @apply text-brand underline underline-offset-2 transition-colors;
+    text-decoration-thickness: from-font;
+  }
+
+  a:hover {
+    @apply text-brand-dark;
+  }
+
+  table {
+    @apply w-full border-collapse text-sm;
+  }
+
+  th {
+    @apply border-b border-line bg-paper-sunk px-3 py-2.5 text-left align-top text-2xs font-semibold uppercase tracking-wide text-ink-muted;
+  }
+
+  td {
+    @apply border-b border-line px-3 py-2.5 align-top;
+  }
+
+  tbody tr {
+    @apply transition-colors;
+  }
+
+  tbody tr:hover {
+    @apply bg-paper-soft;
+  }
+
+  tbody tr:last-child td {
+    @apply border-b-0;
+  }
+
+  input,
+  select,
+  textarea {
+    @apply w-full rounded border border-line-strong bg-field px-3 py-2 text-ink shadow-none transition-colors;
+  }
+
+  input:hover:not(:disabled),
+  select:hover:not(:disabled),
+  textarea:hover:not(:disabled) {
+    @apply border-ink-faint;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    @apply text-ink-faint;
+  }
+
+  input:disabled,
+  select:disabled,
+  textarea:disabled {
+    @apply cursor-not-allowed bg-field-sunk text-ink-muted;
+  }
+
+  label {
+    @apply block text-sm font-medium text-ink;
+  }
+
+  fieldset {
+    @apply border-0 p-0;
+  }
+
+  ::selection {
+    @apply bg-brand-light text-brand-dark;
+  }
+}
+
+@layer components {
+  .skip-link {
+    @apply sr-only;
+  }
+
+  .skip-link:focus {
+    @apply not-sr-only fixed left-3 top-3 z-50 rounded bg-brand px-4 py-2 text-brand-contrast no-underline shadow-overlay;
+  }
+
+  .card {
+    @apply rounded-lg border border-line bg-paper shadow-card;
+  }
+
+  .card-pad {
+    @apply p-4 sm:p-5;
+  }
+
+  .card-interactive {
+    @apply transition-shadow hover:shadow-raised;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded border px-4 py-2 text-sm font-medium no-underline transition-all;
+    min-height: 40px;
+  }
+
+  .btn:active:not(:disabled) {
+    transform: translateY(0.5px);
+  }
+
+  .btn-primary {
+    @apply border-brand bg-brand text-brand-contrast shadow-card hover:border-brand-dark hover:bg-brand-dark hover:text-brand-contrast;
+  }
+
+  .btn-secondary {
+    @apply border-line-strong bg-paper text-ink shadow-card hover:border-ink-faint hover:bg-paper-sunk hover:text-ink;
+  }
+
+  .btn-danger {
+    @apply border-bad bg-paper text-bad shadow-card hover:bg-bad-light hover:text-bad;
+  }
+
+  .btn-quiet {
+    @apply border-transparent bg-transparent text-ink-soft hover:bg-paper-sunk hover:text-ink;
+  }
+
+  .btn:disabled {
+    @apply cursor-not-allowed border-line bg-paper-sunk text-ink-faint shadow-none;
+  }
+
+  .field {
+    @apply space-y-1.5;
+  }
+
+  .help {
+    @apply text-sm text-ink-muted;
+  }
+
+  .error-text {
+    @apply text-sm text-bad;
+  }
+
+  .pill {
+    @apply inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium;
+  }
+
+  /* The dot repeats the status the words already carry; it never replaces them. */
+  .pill-dot {
+    @apply h-1.5 w-1.5 shrink-0 rounded-full bg-current;
+  }
+
+  .pill-neutral {
+    @apply border-line-strong bg-paper-sunk text-ink-soft;
+  }
+
+  .pill-good {
+    @apply border-good/35 bg-good-light text-good;
+  }
+
+  .pill-warn {
+    @apply border-warn/35 bg-warn-light text-warn;
+  }
+
+  .pill-bad {
+    @apply border-bad/35 bg-bad-light text-bad;
+  }
+
+  /* The top bar stays put: the task inbox is never more than one click away (UX-02). */
+  .app-header {
+    @apply sticky top-0 z-40 border-b border-line backdrop-blur-md;
+    background-color: rgb(var(--header-tint) / 0.85);
+  }
+
+  @supports not (backdrop-filter: blur(1px)) {
+    .app-header {
+      background-color: rgb(var(--header-tint));
+    }
+  }
+
+  .nav-link {
+    @apply relative rounded px-2 py-1.5 text-sm font-medium text-ink-soft no-underline transition-colors hover:bg-paper-sunk hover:text-ink hover:no-underline;
+  }
+
+  .nav-link-active {
+    @apply bg-brand-light text-brand hover:bg-brand-light hover:text-brand;
+  }
+
+  .prose-block p {
+    @apply max-w-prose;
+  }
+
+  .num {
+    @apply font-mono tabular-nums;
+  }
+
+  /* A single figure quoted large: the platform counters and score headlines. */
+  .stat {
+    @apply num text-2xl font-semibold tracking-tight text-ink;
+  }
+
+  .stat-label {
+    @apply text-2xs font-medium uppercase tracking-wide text-ink-muted;
+  }
+}
+
+/*
+ * Printed records and exports should not carry interface chrome.
+ *
+ * A record printed from the dark theme would come out as white text on a black page,
+ * which wastes toner and is unreadable once photocopied into a file. Print is always
+ * the light palette, whichever theme is on screen.
+ */
+@media print {
+  :root,
+  :root[data-theme="dark"] {
+    color-scheme: light;
+
+    --ink: 21 25 30;
+    --ink-soft: 58 66 75;
+    --ink-muted: 88 99 110;
+    --ink-faint: 133 142 152;
+
+    --paper: 255 255 255;
+    --paper-soft: 255 255 255;
+    --paper-sunk: 240 242 245;
+
+    --field: 255 255 255;
+    --field-sunk: 241 244 247;
+
+    --line: 200 206 213;
+    --line-strong: 150 158 167;
+
+    --brand: 17 73 122;
+    --brand-dark: 11 50 85;
+    --brand-light: 237 243 248;
+    --brand-contrast: 255 255 255;
+
+    --good: 22 101 57;
+    --good-light: 237 246 240;
+    --warn: 132 85 0;
+    --warn-light: 253 246 232;
+    --bad: 155 28 28;
+    --bad-light: 253 240 240;
+
+    --shadow-card: none;
+    --shadow-raised: none;
+    --shadow-overlay: none;
+
+    --header-tint: 255 255 255;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .app-header {
+    position: static;
+  }
+
+  .card {
+    @apply shadow-none;
+  }
+
+  body {
+    @apply bg-paper;
+  }
+}
+
+/* Respect a stated preference for less movement. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

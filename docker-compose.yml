@@ -1,0 +1,160 @@
+# PramaanSetu, the full topology from PRD section 7.6.
+#
+#   docker compose up --build
+#   docker compose run --rm api python -m app.seed --reset
+#
+# Roles are separated exactly as they are in a deployment: the API stays fast because
+# the slow work lives in workers, and the workers are split by queue so an overload in
+# drafting cannot block a payment escalation.
+
+name: pramaansetu
+
+x-api-env: &api-env
+  ENVIRONMENT: local
+  DATABASE_URL: postgresql+asyncpg://pramaansetu:pramaansetu@postgres:5432/pramaansetu
+  REDIS_URL: redis://redis:6379/0
+  SECRET_KEY: compose-only-secret-replace-in-every-deployed-environment
+  STORAGE_BACKEND: local
+  STORAGE_ROOT: /app/var/files
+  ADAPTER_EMAIL_MODE: smtp
+  WEB_BASE_URL: http://localhost:3000
+  BASE_URL: http://api:8000
+  CORS_ORIGINS: '["http://localhost:3000"]'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: pramaansetu
+      POSTGRES_PASSWORD: pramaansetu
+      POSTGRES_DB: pramaansetu
+    command: >
+      postgres
+      -c shared_preload_libraries=pg_stat_statements
+      -c max_connections=200
+      -c log_min_duration_statement=500
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./infra/postgres/roles.sql:/docker-entrypoint-initdb.d/10-roles.sql:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pramaansetu -d pramaansetu"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  minio:
+    # S3-compatible object storage, so the document vault runs the same code path
+    # locally as it does against a cloud object store.
+    image: minio/minio:latest
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: pramaansetu
+      MINIO_ROOT_PASSWORD: pramaansetu
+    volumes:
+      - minio-data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  mailpit:
+    # Catches every email the platform sends, so notification wording can be reviewed.
+    image: axllent/mailpit:latest
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+  api:
+    build:
+      context: ./backend
+    environment:
+      <<: *api-env
+      JOB_RUNNER_ENABLED: "false"
+      SCHEDULER_ENABLED: "false"
+    volumes:
+      - file-vault:/app/var/files
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  worker-critical:
+    # Outbox relay and service level escalations. Nothing slow shares this queue.
+    build:
+      context: ./backend
+    command: ["python", "-m", "app.workers.runner", "--queues", "critical,default"]
+    environment: *api-env
+    volumes:
+      - file-vault:/app/var/files
+    depends_on:
+      api:
+        condition: service_started
+    restart: unless-stopped
+
+  worker-compute:
+    # Simulations, evidence analysis, drafting, matching and document rendering.
+    build:
+      context: ./backend
+    command: ["python", "-m", "app.workers.runner", "--queues", "compute,ai,docs"]
+    environment: *api-env
+    volumes:
+      - file-vault:/app/var/files
+    depends_on:
+      api:
+        condition: service_started
+    restart: unless-stopped
+
+  scheduler:
+    # Two replicas: leadership is a lease in the database, so exactly one is active and
+    # the other takes over when the lease lapses.
+    build:
+      context: ./backend
+    command: ["python", "-m", "app.workers.scheduler"]
+    environment: *api-env
+    depends_on:
+      api:
+        condition: service_started
+    deploy:
+      replicas: 2
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./frontend
+    environment:
+      API_ORIGIN: http://api:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      api:
+        condition: service_started
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+  redis-data:
+  minio-data:
+  file-vault:
