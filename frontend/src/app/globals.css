@@ -272,6 +272,15 @@
   }
 }
 
+@keyframes nav-progress {
+  0% {
+    transform: scaleX(0);
+  }
+  100% {
+    transform: scaleX(0.92);
+  }
+}
+
 @keyframes marquee {
   to {
     transform: translateX(calc(-1 * var(--mq-w) - var(--mq-gap)));

@@ -24,16 +24,14 @@ from app.core.policy import Principal
 from app.domain.ecs import EcsInput, compute
 from app.domain.hashchain import dataset_digest
 from app.domain.states import ChallengeState, EvidenceStatus, Role
-from app.domain.statistics import (
-    analyse_difference_in_differences,
-    analyse_paired,
-    analyse_two_proportion,
-)
 from app.models.challenge import Challenge, Kpi
 from app.models.evidence import EvidenceReport
 from app.models.pilot import MetricSubmission, Pilot
 from app.models.simulation import PilotDesign
-from app.services import audit, files, outbox, pdf
+from app.services import audit, files, outbox
+
+# The statistics (scipy) and the PDF rendering (reportlab) are imported where they are
+# used: loading them up front is a noticeable share of a serverless cold start.
 
 VALIDATION_CHECKLIST = (
     ("data_provenance", "Data provenance confirmed: the submissions come from the sources named "
@@ -92,6 +90,12 @@ async def run_analysis(
     seed: int | None = None,
 ) -> EvidenceReport:
     """Run the pre-registered analysis and build the Evidence Report (FR-EE-01, FR-EE-03)."""
+    from app.domain.statistics import (
+        analyse_difference_in_differences,
+        analyse_paired,
+        analyse_two_proportion,
+    )
+
     design_row = await session.execute(select(PilotDesign).where(PilotDesign.pilot_id == pilot.id))
     design = design_row.scalar_one_or_none()
     if design is None or design.frozen_at is None:
@@ -373,6 +377,8 @@ async def _secondary_results(
     resamples: int,
 ) -> list[dict[str, Any]]:
     """Supporting measures, reported but never used to decide (FR-EE-01)."""
+    from app.domain.statistics import analyse_paired
+
     if challenge is None:
         return []
     out: list[dict[str, Any]] = []
@@ -469,6 +475,7 @@ async def _render_report(
     principal: Principal,
 ):
     from app.models.startup import Startup
+    from app.services import pdf
 
     startup = await session.get(Startup, pilot.startup_id)
     analysis = report.analysis or {}

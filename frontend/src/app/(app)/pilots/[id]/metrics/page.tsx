@@ -8,7 +8,7 @@ import { Callout, EmptyState, Figure, FigureGrid, Flash, LinkButton, Meter, Page
 import { Input } from "@/components/ui/input";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { apiGet, apiGetOptional, apiGetOrNotFound } from "@/lib/api";
+import { all, apiGet, apiGetOptional, apiGetOrNotFound } from "@/lib/api";
 import { decimal, formatDate } from "@/lib/format";
 import { single } from "@/lib/forms";
 import { hasRole, requireSession } from "@/lib/session";
@@ -57,15 +57,16 @@ type Props = {
 export default async function MetricsPage({ params, searchParams }: Props) {
   const { id } = await params;
   const query = await searchParams;
-  const session = await requireSession("/pilots/" + id + "/metrics");
-  const pilot = await apiGetOrNotFound<Pilot>("/pilots/" + id);
-  const challenge = await apiGet<Challenge>("/challenges/" + pilot.challenge_id);
-  const dashboard = await apiGetOptional<Dashboard>("/pilots/" + id + "/dashboard");
-
   const phase = single(query.phase);
   const search = new URLSearchParams({ limit: "500", include_disputed: "true" });
   if (phase) search.set("phase", phase);
-  const metrics = await apiGet<{ items: MetricRow[]; count: number }>("/pilots/" + id + "/metrics?" + search.toString());
+  const [session, pilot, dashboard, metrics] = await all(
+    requireSession("/pilots/" + id + "/metrics"),
+    apiGetOrNotFound<Pilot>("/pilots/" + id),
+    apiGetOptional<Dashboard>("/pilots/" + id + "/dashboard"),
+    apiGet<{ items: MetricRow[]; count: number }>("/pilots/" + id + "/metrics?" + search.toString()),
+  );
+  const challenge = await apiGet<Challenge>("/challenges/" + pilot.challenge_id);
 
   const isStartup = session.startup_id === pilot.startup_id;
   const canSubmit = isStartup || (hasRole(session, "DO") && session.department_id === pilot.department_id);

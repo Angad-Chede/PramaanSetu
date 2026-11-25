@@ -5,7 +5,7 @@ import { confirmShortlist, runWorkflowStep } from "@/app/challenges/actions";
 import { SubmitButton } from "@/components/app/forms";
 import { Callout, EmptyState, Flash, Page, PageHeader, Panel, SectionHeading, StateBadge, ToneBadge } from "@/components/app/kit";
 import { Checkbox } from "@/components/ui/checkbox";
-import { apiGetOrNotFound } from "@/lib/api";
+import { all, apiGetOrNotFound } from "@/lib/api";
 import { CHALLENGE_STATE_LABELS, compactRupees, decimal } from "@/lib/format";
 import { hasRole, requireSession } from "@/lib/session";
 import type { Challenge, RankingRow } from "@/lib/types";
@@ -120,9 +120,11 @@ function RankingRows({ items, selectable }: { items: RankingRow[]; selectable: b
 export default async function RankingPage({ params, searchParams }: Props) {
   const { id } = await params;
   const query = await searchParams;
-  const session = await requireSession("/challenges/" + id + "/ranking");
-  const challenge = await apiGetOrNotFound<Challenge>("/challenges/" + id);
-  const ranking = await apiGetOrNotFound<{ items: RankingRow[]; blinded: boolean; flags: string[]; note: string }>("/challenges/" + id + "/ranking");
+  const [session, challenge, ranking] = await all(
+    requireSession("/challenges/" + id + "/ranking"),
+    apiGetOrNotFound<Challenge>("/challenges/" + id),
+    apiGetOrNotFound<{ items: RankingRow[]; blinded: boolean; flags: string[]; note: string }>("/challenges/" + id + "/ranking"),
+  );
 
   const isOwner = session.department_id === challenge.department_id;
   const canLock = challenge.state === "Evaluation" && hasRole(session, "DO") && isOwner;

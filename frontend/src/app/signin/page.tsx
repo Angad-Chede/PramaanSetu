@@ -10,6 +10,7 @@ import { ThemeToggle } from "@/components/app/theme";
 import { single } from "@/lib/forms";
 
 import { CodeInput } from "./otp";
+import { PersonaButton } from "./persona-button";
 
 export const metadata: Metadata = { title: "Sign in" };
 export const dynamic = "force-dynamic";
@@ -129,19 +130,7 @@ export default async function SignInPage({ searchParams }: Props) {
                 <form action={signInAs}>
                   <input type="hidden" name="identifier" value={persona.email} />
                   <input type="hidden" name="next" value={next} />
-                  <button
-                    type="submit"
-                    className="group flex w-full items-center gap-3 rounded-2xl bg-white/[0.05] p-3 text-left ring-1 ring-white/[0.08] transition-[background-color,translate,box-shadow] duration-200 ease-ios outline-none hover:-translate-y-0.5 hover:bg-white/[0.09] hover:ring-white/15 focus-visible:ring-2 focus-visible:ring-brand active:scale-[0.98]"
-                  >
-                    <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-white/[0.08] text-white/80 transition-colors group-hover:bg-brand group-hover:text-white">
-                      <persona.icon className="size-[18px]" />
-                    </span>
-                    <span className="flex min-w-0 flex-col">
-                      <span className="truncate text-sm font-medium">{persona.role}</span>
-                      <span className="truncate text-[12px] text-white/50">{persona.note}</span>
-                    </span>
-                    <ArrowRight className="ml-auto size-4 shrink-0 text-white/30 transition-[translate,color] duration-200 ease-ios group-hover:translate-x-0.5 group-hover:text-white" />
-                  </button>
+                  <PersonaButton icon={<persona.icon className="size-[18px]" />} role={persona.role} note={persona.note} />
                 </form>
               </li>
             ))}

@@ -4,7 +4,7 @@ import { ArrowRight, Ban, CalendarClock, CheckCircle2, CircleDashed, EyeOff, Loc
 import { declareConflict, submitScores } from "@/app/pilots/actions";
 import { Disclosure, SelectField, SubmitButton, TextAreaField } from "@/components/app/forms";
 import { Callout, Deadline, EmptyState, Flash, Page, PageHeader, Panel, StateBadge, ToneBadge, type Tone } from "@/components/app/kit";
-import { apiGetOrNotFound } from "@/lib/api";
+import { all, apiGetOrNotFound } from "@/lib/api";
 import { CHALLENGE_STATE_LABELS, compactRupees, decimal, IP_OPTION_LABELS } from "@/lib/format";
 import { requireSession } from "@/lib/session";
 import { cn } from "@/lib/utils";
@@ -82,8 +82,7 @@ const Label = ({ children }: { children: React.ReactNode }) => (
 export default async function EvaluationWorkspacePage({ params, searchParams }: Props) {
   const { id } = await params;
   const query = await searchParams;
-  await requireSession("/evaluation/" + id);
-  const workspace = await apiGetOrNotFound<Workspace>("/evaluation/" + id);
+  const [, workspace] = await all(requireSession("/evaluation/" + id), apiGetOrNotFound<Workspace>("/evaluation/" + id));
 
   const kpiById = new Map(workspace.kpis.map((kpi) => [kpi.id, kpi]));
   const pending = workspace.applications.filter((application) => !application.scored && !application.has_conflict);

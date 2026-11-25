@@ -60,18 +60,20 @@ from app.main import app as api  # noqa: E402
 from app.workers.runner import drain  # noqa: E402
 
 # A serverless instance only runs while it answers a request, so the job runner and
-# scheduler loops started in the lifespan never get to work. Instead, each request
-# first runs whatever is queued: the redirect after a form post and the job watcher's
-# polling then carry every job and outbox event through. One drain at a time; the
-# others go straight on.
+# scheduler loops started in the lifespan never get to work. Instead, whatever a request
+# queued is run once its response has gone out: on fluid compute the runtime streams the
+# response straight to the client and keeps the invocation open until this coroutine
+# returns, so the visitor never waits on the jobs. The redirect after a form post and the
+# job watcher's polling then carry every job and outbox event through. One drain at a
+# time; the others return straight away.
 _draining = asyncio.Lock()
 
 
 async def app(scope, receive, send):  # type: ignore[no-untyped-def]
+    await api(scope, receive, send)
     if scope["type"] == "http" and not _draining.locked():
         async with _draining:
             await drain(max_jobs=100)
-    await api(scope, receive, send)
 
 
 __all__ = ["app"]

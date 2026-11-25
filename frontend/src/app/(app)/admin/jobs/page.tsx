@@ -5,7 +5,7 @@ import { retryDeadLetter, runSchedulerNow } from "@/app/actions";
 import { SubmitButton } from "@/components/app/forms";
 import { Figure, FigureGrid, Flash, Meter, Page, PageHeader, Panel, ToneBadge } from "@/components/app/kit";
 import { formatDateTime } from "@/lib/format";
-import { apiGet } from "@/lib/api";
+import { all, apiGet } from "@/lib/api";
 import { requireSession } from "@/lib/session";
 import { cn } from "@/lib/utils";
 
@@ -62,8 +62,7 @@ const PRINCIPLES = [
 
 export default async function JobsPage({ searchParams }: Props) {
   const params = await searchParams;
-  await requireSession("/admin/jobs");
-  const overview = await apiGet<Overview>("/admin/jobs");
+  const [, overview] = await all(requireSession("/admin/jobs"), apiGet<Overview>("/admin/jobs"));
 
   const queues = Object.entries(overview.queue_depth);
   const waiting = queues.reduce((sum, [, count]) => sum + count, 0);

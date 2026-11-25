@@ -35,7 +35,7 @@ import {
   ToneBadge,
 } from "@/components/app/kit";
 import { Button } from "@/components/ui/button";
-import { apiGetOptional, apiGetOrNotFound } from "@/lib/api";
+import { all, apiGetOptional, apiGetOrNotFound } from "@/lib/api";
 import { CHALLENGE_STATE_LABELS, IP_OPTION_LABELS, compactRupees, formatDate, formatDateTime, money, relativeDeadline } from "@/lib/format";
 import { hasRole, requireSession } from "@/lib/session";
 import type { Challenge, Match } from "@/lib/types";
@@ -82,11 +82,14 @@ type Props = {
 export default async function ChallengePage({ params, searchParams }: Props) {
   const { id } = await params;
   const query = await searchParams;
-  const session = await requireSession("/challenges/" + id);
-  const challenge = await apiGetOrNotFound<Challenge>("/challenges/" + id);
-  const matches = hasRole(session, "DO", "DA")
-    ? await apiGetOptional<{ items: Match[]; note: string }>("/challenges/" + id + "/matches?limit=10")
-    : null;
+  const sessionRead = requireSession("/challenges/" + id);
+  const [session, challenge, matches] = await all(
+    sessionRead,
+    apiGetOrNotFound<Challenge>("/challenges/" + id),
+    sessionRead.then((signedIn) =>
+      hasRole(signedIn, "DO", "DA") ? apiGetOptional<{ items: Match[]; note: string }>("/challenges/" + id + "/matches?limit=10") : null,
+    ),
+  );
 
   const isOwner = session.department_id === challenge.department_id;
   const next = NEXT_STEP[challenge.state];

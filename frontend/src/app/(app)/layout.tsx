@@ -9,8 +9,7 @@ import { apiGet } from "@/lib/api";
 import { ROLE_LABELS } from "@/lib/format";
 import { getSession, navigationFor } from "@/lib/session";
 
-async function unreadCount(signedIn: boolean): Promise<number> {
-  if (!signedIn) return 0;
+async function unreadCount(): Promise<number> {
   try {
     const body = await apiGet<{ unread_count: number }>("/me/notifications?unread_only=true&limit=1");
     return body.unread_count ?? 0;
@@ -27,7 +26,10 @@ function orgLabel(roles: string[]): string {
 }
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  const session = await getSession();
+  const jar = await cookies();
+  const hasSessionCookie = jar.has("ps_access") || jar.has("ps_refresh");
+  // asked together; a signed-out visitor's count is never used
+  const [session, unread] = await Promise.all([getSession(), hasSessionCookie ? unreadCount() : 0]);
   const items = navigationFor(session);
 
   if (!session) {
@@ -41,8 +43,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     );
   }
 
-  const unread = await unreadCount(true);
-  const sidebarOpen = (await cookies()).get("sidebar_state")?.value !== "false";
+  const sidebarOpen = jar.get("sidebar_state")?.value !== "false";
   const user = {
     name: session.name,
     email: session.email,

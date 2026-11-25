@@ -1,18 +1,20 @@
 import { redirect } from "next/navigation";
+import { cache } from "react";
 
 import { ApiError, apiGet } from "@/lib/api";
 import type { Session } from "@/lib/types";
 
 /** Who is signed in, and what they are allowed to see in the navigation. */
 
-export async function getSession(): Promise<Session | null> {
+// The layout and the page both ask, so one render shares a single request.
+export const getSession = cache(async (): Promise<Session | null> => {
   try {
     return await apiGet<Session>("/auth/session");
   } catch (error) {
     if (error instanceof ApiError && error.status === 401) return null;
     throw error;
   }
-}
+});
 
 export async function requireSession(returnTo?: string): Promise<Session> {
   const session = await getSession();

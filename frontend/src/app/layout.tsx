@@ -2,7 +2,9 @@ import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono, Reddit_Sans } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 
+import { NavProgress } from "@/components/app/nav-progress";
 import { ThemeProvider } from "@/components/app/theme";
+import { WarmUp } from "@/components/app/warm-up";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 import "./globals.css";
@@ -36,6 +38,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} ${display.variable} ${mono.variable} min-h-dvh font-sans`}>
+        <NavProgress />
+        <WarmUp />
         <ThemeProvider>
           <TooltipProvider delayDuration={200}>{children}</TooltipProvider>
           <Toaster />

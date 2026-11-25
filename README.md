@@ -116,8 +116,11 @@ and no process between requests, so the API's entry point:
 
 - copies a seeded SQLite snapshot into `/tmp` on cold start, and seeds one itself if
   the snapshot is missing. Changes last as long as the instance does;
-- runs queued jobs and relays the outbox at the start of each request, in place
+- runs queued jobs and relays the outbox once each response has been sent, in place
   of the job runner and scheduler processes.
+
+Both projects are pinned to Mumbai (`bom1`) in their `vercel.json`, next to the people
+who use the demo.
 
 Build the snapshot before each deploy, so its dates are current:
 

@@ -6,7 +6,7 @@ import { SelectField, SubmitButton, TextAreaField, TextField } from "@/component
 import { Callout, Flash, KeyValues, LinkButton, Page, PageHeader, Panel, ToneBadge, fieldErrorFor } from "@/components/app/kit";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { apiGetOptional, apiGetOrNotFound } from "@/lib/api";
+import { all, apiGetOptional, apiGetOrNotFound } from "@/lib/api";
 import { decimal, formatDate, signed } from "@/lib/format";
 import { hasRole, requireSession } from "@/lib/session";
 import type { Passport } from "@/lib/types";
@@ -32,9 +32,11 @@ type Props = {
 export default async function PassportPage({ params, searchParams }: Props) {
   const { id } = await params;
   const query = await searchParams;
-  const session = await requireSession("/evidence/" + id);
-  const passport = await apiGetOrNotFound<Passport>("/passports/" + id);
-  const fit = await apiGetOptional<Fit>("/passports/" + id + "/context-fit");
+  const [session, passport, fit] = await all(
+    requireSession("/evidence/" + id),
+    apiGetOrNotFound<Passport>("/passports/" + id),
+    apiGetOptional<Fit>("/passports/" + id + "/context-fit"),
+  );
 
   const canAdopt = hasRole(session, "DO", "DA");
   const result = passport.result_summary ?? {};

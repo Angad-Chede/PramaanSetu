@@ -18,7 +18,7 @@ import {
   ToneBadge,
 } from "@/components/app/kit";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { apiGetOptional, apiGetOrNotFound } from "@/lib/api";
+import { all, apiGetOptional, apiGetOrNotFound } from "@/lib/api";
 import {
   ANALYSIS_METHOD_LABELS,
   IP_OPTION_LABELS,
@@ -87,9 +87,11 @@ function shortDate(value: string) {
 export default async function PilotPage({ params, searchParams }: Props) {
   const { id } = await params;
   const query = await searchParams;
-  const session = await requireSession("/pilots/" + id);
-  const pilot = await apiGetOrNotFound<Pilot>("/pilots/" + id);
-  const dashboard = await apiGetOptional<Dashboard>("/pilots/" + id + "/dashboard");
+  const [session, pilot, dashboard] = await all(
+    requireSession("/pilots/" + id),
+    apiGetOrNotFound<Pilot>("/pilots/" + id),
+    apiGetOptional<Dashboard>("/pilots/" + id + "/dashboard"),
+  );
 
   const isDepartment = session.department_id === pilot.department_id;
   const isStartup = session.startup_id === pilot.startup_id;

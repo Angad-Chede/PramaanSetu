@@ -6,7 +6,7 @@ import { projectScale, recordDecision } from "@/app/pilots/actions";
 import { CheckField, Disclosure, SubmitButton, TextAreaField, TextField } from "@/components/app/forms";
 import { Callout, Flash, KeyValues, LinkButton, Page, PageHeader, Panel, ToneBadge, type Tone, bandToneOf } from "@/components/app/kit";
 import { Gauge } from "@/components/ui/gauge";
-import { apiGetOptional, apiGetOrNotFound, apiPost } from "@/lib/api";
+import { all, apiGetOptional, apiGetOrNotFound, apiPost } from "@/lib/api";
 import { compactRupees, decimal, formatDateTime, money, signed } from "@/lib/format";
 import { single } from "@/lib/forms";
 import { hasRole, requireSession } from "@/lib/session";
@@ -78,35 +78,33 @@ type Props = {
 export default async function DecisionPage({ params, searchParams }: Props) {
   const { id } = await params;
   const query = await searchParams;
-  const session = await requireSession("/pilots/" + id + "/decision");
-  const pilot = await apiGetOrNotFound<Pilot>("/pilots/" + id);
-  const report = await apiGetOptional<EvidenceReport>("/pilots/" + id + "/evidence");
-  const existing = await apiGetOptional<Decision>("/pilots/" + id + "/decision");
+  const [session, pilot, report, existing] = await all(
+    requireSession("/pilots/" + id + "/decision"),
+    apiGetOrNotFound<Pilot>("/pilots/" + id),
+    apiGetOptional<EvidenceReport>("/pilots/" + id + "/evidence"),
+    apiGetOptional<Decision>("/pilots/" + id + "/decision"),
+  );
 
   const estimatedValue = Number(single(query.value) ?? 0);
   const units = Number(single(query.units) ?? 0);
   const costPerUnit = Number(single(query.cost) ?? 0);
 
   const validated = Boolean(report && report.status.startsWith("SignedOff"));
-  const pathway = validated ? await apiGetOptional<Pathway>("/pilots/" + id + "/pathway?estimated_value_rupees=" + (estimatedValue || 0)) : null;
-  const dependency = validated ? await apiGetOptional<Dependency>("/pilots/" + id + "/vendor-dependency") : null;
-
   const canDecide = hasRole(session, "DA") && session.department_id === pilot.department_id;
   const analysis = report?.analysis ?? {};
 
   // the projection is pure arithmetic on the validated interval, so it is run on request
-  let projection: Projection | null = null;
-  if (validated && canDecide && units > 0) {
-    try {
-      projection = await apiPost<Projection>("/pilots/" + id + "/scale-simulations", {
-        units,
-        cost_per_unit_rupees: costPerUnit,
-        value_per_effect_unit_rupees: estimatedValue,
-      });
-    } catch {
-      projection = null;
-    }
-  }
+  const [pathway, dependency, projection] = await all(
+    validated ? apiGetOptional<Pathway>("/pilots/" + id + "/pathway?estimated_value_rupees=" + (estimatedValue || 0)) : Promise.resolve(null),
+    validated ? apiGetOptional<Dependency>("/pilots/" + id + "/vendor-dependency") : Promise.resolve(null),
+    validated && canDecide && units > 0
+      ? apiPost<Projection>("/pilots/" + id + "/scale-simulations", {
+          units,
+          cost_per_unit_rupees: costPerUnit,
+          value_per_effect_unit_rupees: estimatedValue,
+        }).catch((): Projection | null => null)
+      : Promise.resolve<Projection | null>(null),
+  );
   const storedProjection = existing?.scale_projection && "units" in existing.scale_projection ? (existing.scale_projection as Projection) : null;
   const recorded = existing ? DECISIONS.find((d) => d.value === existing.decision) : undefined;
 

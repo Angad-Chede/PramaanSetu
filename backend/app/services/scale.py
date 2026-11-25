@@ -32,7 +32,7 @@ from app.models.pilot import Pilot
 from app.models.scale import AdoptionRequest, InnovationPassport, ScaleDecision
 from app.models.simulation import PilotDesign
 from app.models.startup import Startup
-from app.services import audit, files, outbox, pdf
+from app.services import audit, files, outbox
 from app.services.adapters.gem import get_gem_adapter
 
 
@@ -276,6 +276,8 @@ async def _render_handoff(
     report: EvidenceReport,
     principal: Principal,
 ):
+    from app.services import pdf  # reportlab loads on first use
+
     challenge = await session.get(Challenge, pilot.challenge_id)
     department = await session.get(Department, pilot.department_id)
     design_row = await session.execute(select(PilotDesign).where(PilotDesign.pilot_id == pilot.id))

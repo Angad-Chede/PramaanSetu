@@ -4,7 +4,7 @@ import { CalendarClock, EyeOff, MessageCircleQuestion, MessagesSquare, Send } fr
 import { answerClarification } from "@/app/challenges/actions";
 import { SubmitButton, TextAreaField } from "@/components/app/forms";
 import { EmptyState, Figure, Flash, Page, PageHeader, Panel, ToneBadge } from "@/components/app/kit";
-import { apiGet, apiGetOrNotFound } from "@/lib/api";
+import { all, apiGet, apiGetOrNotFound } from "@/lib/api";
 import { formatDateTime, relativeDeadline } from "@/lib/format";
 import { hasRole, requireSession } from "@/lib/session";
 import type { Challenge, Clarification } from "@/lib/types";
@@ -20,9 +20,11 @@ type Props = {
 export default async function ClarificationsPage({ params, searchParams }: Props) {
   const { id } = await params;
   const query = await searchParams;
-  const session = await requireSession("/challenges/" + id + "/clarifications");
-  const challenge = await apiGetOrNotFound<Challenge>("/challenges/" + id);
-  const body = await apiGet<{ items: Clarification[]; cutoff: string | null; note: string }>("/challenges/" + id + "/clarifications");
+  const [session, challenge, body] = await all(
+    requireSession("/challenges/" + id + "/clarifications"),
+    apiGetOrNotFound<Challenge>("/challenges/" + id),
+    apiGet<{ items: Clarification[]; cutoff: string | null; note: string }>("/challenges/" + id + "/clarifications"),
+  );
 
   const canAnswer = hasRole(session, "DO", "DA") && session.department_id === challenge.department_id;
   const unanswered = body.items.filter((item) => !item.answer);

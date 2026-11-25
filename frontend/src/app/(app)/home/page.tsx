@@ -27,7 +27,7 @@ import { BarList, type BarListItem } from "@/components/ui/bar-list";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Deadline, Flash, Meter, Page, PageHeader, Panel, ToneBadge, type Tone } from "@/components/app/kit";
-import { apiGet, apiGetOptional } from "@/lib/api";
+import { all, apiGet, apiGetOptional } from "@/lib/api";
 import { CHALLENGE_STATE_LABELS, ROLE_LABELS, formatDateTime } from "@/lib/format";
 import { hasRole, requireSession } from "@/lib/session";
 import type { Notification, Task } from "@/lib/types";
@@ -127,10 +127,13 @@ function today(): string {
 
 export default async function HomePage({ searchParams }: Props) {
   const params = await searchParams;
-  const session = await requireSession("/home");
-  const tasks = await apiGet<TaskList>("/me/tasks");
-  const dashboard = hasRole(session, "DO", "DA", "FO", "PA") ? await apiGetOptional<Dashboard>("/admin/dashboard") : null;
-  const updates = await apiGet<{ items: Notification[]; unread_count: number }>("/me/notifications?limit=6").catch(() => null);
+  const sessionRead = requireSession("/home");
+  const [session, tasks, dashboard, updates] = await all(
+    sessionRead,
+    apiGet<TaskList>("/me/tasks"),
+    sessionRead.then((signedIn) => (hasRole(signedIn, "DO", "DA", "FO", "PA") ? apiGetOptional<Dashboard>("/admin/dashboard") : null)),
+    apiGet<{ items: Notification[]; unread_count: number }>("/me/notifications?limit=6").catch(() => null),
+  );
 
   const quickLinks = QUICK_LINKS.filter((link) => hasRole(session, ...link.roles));
   const firstName = session.name.split(/\s+/).find((part) => !HONORIFICS.test(part)) ?? session.name;

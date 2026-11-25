@@ -4,7 +4,7 @@ import { AlarmClock, ArrowUpRight, BadgeIndianRupee, CircleCheckBig, Inbox, Wall
 
 import { Disclosure } from "@/components/app/forms";
 import { EmptyState, Figure, FigureGrid, Flash, Page, PageHeader, Panel, ToneBadge } from "@/components/app/kit";
-import { apiGet, apiGetOptional } from "@/lib/api";
+import { all, apiGet, apiGetOptional } from "@/lib/api";
 import { compactRupees, decimal, formatRupees } from "@/lib/format";
 import { requireSession } from "@/lib/session";
 import { cn } from "@/lib/utils";
@@ -39,9 +39,12 @@ type Props = { searchParams: Promise<Record<string, string | string[] | undefine
 
 export default async function FinancePage({ searchParams }: Props) {
   const query = await searchParams;
-  const session = await requireSession("/finance");
-  const queue = await apiGet<{ items: Milestone[]; count: number; note: string }>("/finance/queue");
-  const report = session.department_id ? await apiGetOptional<Report>("/departments/" + session.department_id + "/payment-report") : null;
+  const sessionRead = requireSession("/finance");
+  const [session, queue, report] = await all(
+    sessionRead,
+    apiGet<{ items: Milestone[]; count: number; note: string }>("/finance/queue"),
+    sessionRead.then((s) => (s.department_id ? apiGetOptional<Report>("/departments/" + s.department_id + "/payment-report") : null)),
+  );
 
   const overdue = queue.items.filter((item) => item.overdue);
   const total = queue.items.reduce((sum, item) => sum + item.amount_paise, 0);

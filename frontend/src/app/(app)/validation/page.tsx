@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowUpRight, FileClock, Hourglass, ShieldCheck, Stamp } from "lucide-react";
 
 import { EmptyState, Figure, FigureGrid, Page, PageHeader, Panel, SectionHeading, StateBadge, ToneBadge } from "@/components/app/kit";
-import { apiGet, apiGetOptional } from "@/lib/api";
+import { all, apiGet, apiGetOptional } from "@/lib/api";
 import { CHALLENGE_STATE_LABELS, decimal } from "@/lib/format";
 import { requireSession } from "@/lib/session";
 import type { EvidenceReport, Pilot } from "@/lib/types";
@@ -40,18 +40,18 @@ function ScoreChip({ score, provisional }: { score: number | null | undefined; p
 }
 
 export default async function ValidationQueuePage() {
-  await requireSession("/validation");
-  const assignments = await apiGet<{ items: Assignment[] }>("/evaluation/assignments");
+  const [, assignments] = await all(requireSession("/validation"), apiGet<{ items: Assignment[] }>("/evaluation/assignments"));
   const mine = assignments.items.filter((item) => item.role === "IV");
 
   const rows: Row[] = [];
   if (mine.length) {
     const pilots = await apiGetOptional<{ items: Pilot[] }>("/pilots?limit=100");
-    for (const assignment of mine) {
+    const reads = mine.map(async (assignment) => {
       const pilot = pilots?.items.find((candidate) => candidate.challenge_id === assignment.challenge_id) ?? null;
       const report = pilot ? await apiGetOptional<EvidenceReport>("/pilots/" + pilot.id + "/evidence") : null;
-      rows.push({ assignment, pilot, report });
-    }
+      return { assignment, pilot, report };
+    });
+    rows.push(...(await all(...reads)));
   }
 
   const waiting = rows.filter((row) => row.report?.status === "AwaitingValidation");

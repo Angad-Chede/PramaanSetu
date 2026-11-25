@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowUpRight, BadgeCheck, ClipboardList, EyeOff, Gauge, Lock, Scale, ShieldCheck } from "lucide-react";
 
 import { EmptyState, Figure, FigureGrid, Page, PageHeader, Panel, SectionHeading, StateBadge, ToneBadge } from "@/components/app/kit";
-import { apiGet } from "@/lib/api";
+import { all, apiGet } from "@/lib/api";
 import { CHALLENGE_STATE_LABELS, formatDate, relativeDeadline } from "@/lib/format";
 import { requireSession } from "@/lib/session";
 import { cn } from "@/lib/utils";
@@ -51,8 +51,7 @@ function ProgressRing({ scored, total }: { scored: number; total: number }) {
 }
 
 export default async function EvaluationHomePage() {
-  await requireSession("/evaluation");
-  const body = await apiGet<{ items: Assignment[] }>("/evaluation/assignments");
+  const [, body] = await all(requireSession("/evaluation"), apiGet<{ items: Assignment[] }>("/evaluation/assignments"));
 
   const evaluating = body.items.filter((item) => item.role === "EE");
   const validating = body.items.filter((item) => item.role === "IV");

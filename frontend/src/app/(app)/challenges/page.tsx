@@ -15,7 +15,7 @@ import {
   StateBadge,
 } from "@/components/app/kit";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { apiGet } from "@/lib/api";
+import { all, apiGet } from "@/lib/api";
 import { CHALLENGE_STATE_LABELS, compactRupees, formatDate, relativeDeadline } from "@/lib/format";
 import { single } from "@/lib/forms";
 import { hasRole, requireSession } from "@/lib/session";
@@ -47,12 +47,11 @@ type Props = { searchParams: Promise<Record<string, string | string[] | undefine
 
 export default async function ChallengesPage({ searchParams }: Props) {
   const params = await searchParams;
-  const session = await requireSession("/challenges");
   const state = single(params.state);
   const query = new URLSearchParams({ mine: "true", limit: "100" });
   if (state) query.set("state", state);
 
-  const body = await apiGet<{ items: Challenge[] }>("/challenges?" + query.toString());
+  const [session, body] = await all(requireSession("/challenges"), apiGet<{ items: Challenge[] }>("/challenges?" + query.toString()));
   const items = body.items;
   const canWrite = hasRole(session, "DO");
 

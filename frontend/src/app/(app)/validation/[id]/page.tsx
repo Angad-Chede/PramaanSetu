@@ -7,7 +7,7 @@ import { Callout, EmptyState, Flash, Hash, KeyValues, Meter, Page, PageHeader, P
 import { Checkbox } from "@/components/ui/checkbox";
 import { Gauge } from "@/components/ui/gauge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { apiGetOrNotFound } from "@/lib/api";
+import { all, apiGetOrNotFound } from "@/lib/api";
 import { ANALYSIS_METHOD_LABELS, decimal, formatDate, formatDateTime, signed } from "@/lib/format";
 import { requireSession } from "@/lib/session";
 import { cn } from "@/lib/utils";
@@ -146,8 +146,7 @@ const td = "px-3 py-2.5 whitespace-nowrap first:pl-5 last:pr-5 md:first:pl-6 md:
 export default async function ValidatorWorkspacePage({ params, searchParams }: Props) {
   const { id } = await params;
   const query = await searchParams;
-  await requireSession("/validation/" + id);
-  const workspace = await apiGetOrNotFound<Workspace>("/evidence/" + id + "/workspace");
+  const [, workspace] = await all(requireSession("/validation/" + id), apiGetOrNotFound<Workspace>("/evidence/" + id + "/workspace"));
 
   const decided = workspace.status !== "AwaitingValidation";
   const status = STATUS[workspace.status] ?? { label: workspace.status, tone: "neutral" as Tone };

@@ -5,7 +5,7 @@ import { saveApplication, submitApplication, withdrawApplication } from "@/app/p
 import { AutosaveForm, CheckField, Disclosure, SubmitButton, TextAreaField, TextField } from "@/components/app/forms";
 import { Callout, Deadline, Flash, LinkButton, Meter, Page, PageHeader, Panel, ProblemList, StateBadge, ToneBadge } from "@/components/app/kit";
 import { Gauge } from "@/components/ui/gauge";
-import { apiGet, apiGetOrNotFound } from "@/lib/api";
+import { all, apiGet, apiGetOrNotFound } from "@/lib/api";
 import { APPLICATION_STATE_LABELS, IP_OPTION_LABELS, compactRupees, decimal, formatDateTime, isOverdue, money } from "@/lib/format";
 import { requireSession } from "@/lib/session";
 import type { Application, Challenge } from "@/lib/types";
@@ -26,8 +26,7 @@ const LOCKED_STATES = ["Locked", "Screened", "UnderEvaluation", "Shortlisted", "
 export default async function MyApplicationPage({ params, searchParams }: Props) {
   const { id } = await params;
   const query = await searchParams;
-  await requireSession("/my-applications/" + id);
-  const application = await apiGetOrNotFound<Application>("/applications/" + id);
+  const [, application] = await all(requireSession("/my-applications/" + id), apiGetOrNotFound<Application>("/applications/" + id));
   const challenge = await apiGet<Challenge>("/challenges/" + application.challenge_id);
 
   const deadlinePassed = isOverdue(challenge.application_deadline);

@@ -19,7 +19,7 @@ import {
 import { Gauge } from "@/components/ui/gauge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { apiGetOptional, apiGetOrNotFound } from "@/lib/api";
+import { all, apiGetOptional, apiGetOrNotFound } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { ANALYSIS_METHOD_LABELS, compactRupees, decimal, formatDateTime, money, percent } from "@/lib/format";
 import { single } from "@/lib/forms";
@@ -84,13 +84,21 @@ function seriesFor(design: DesignOutcome, index: number): SimDesign {
 export default async function DesignPage({ params, searchParams }: Props) {
   const { id } = await params;
   const query = await searchParams;
-  const session = await requireSession("/pilots/" + id + "/design");
-  const pilot = await apiGetOrNotFound<Pilot>("/pilots/" + id);
-  const defaults = await apiGetOptional<Defaults>("/pilots/" + id + "/simulations/defaults");
-  const runs = await apiGetOptional<{ items: RunSummary[] }>("/pilots/" + id + "/simulations?limit=10");
+  const queryRun = single(query.run);
+  const [session, pilot, defaults, runs, queriedRun] = await all(
+    requireSession("/pilots/" + id + "/design"),
+    apiGetOrNotFound<Pilot>("/pilots/" + id),
+    apiGetOptional<Defaults>("/pilots/" + id + "/simulations/defaults"),
+    apiGetOptional<{ items: RunSummary[] }>("/pilots/" + id + "/simulations?limit=10"),
+    queryRun ? apiGetOptional<SimulationRun>("/simulations/" + queryRun) : Promise.resolve(null),
+  );
 
-  const requestedRun = single(query.run) ?? runs?.items[0]?.id ?? null;
-  const run = requestedRun ? await apiGetOptional<SimulationRun>("/simulations/" + requestedRun) : null;
+  // without a run in the URL, show the latest one, which needs the list first
+  let run = queriedRun;
+  const latestRun = runs?.items[0]?.id;
+  if (!queryRun && latestRun) {
+    run = await apiGetOptional<SimulationRun>("/simulations/" + latestRun);
+  }
 
   const canDesign = hasRole(session, "DO") && session.department_id === pilot.department_id;
   const frozen = Boolean(pilot.design?.frozen);

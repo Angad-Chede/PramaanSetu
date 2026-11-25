@@ -8,7 +8,7 @@ import { Callout, EmptyState, Hash, Page, PageHeader, Panel } from "@/components
 import { Badge } from "@/components/ui/badge";
 import { BarList } from "@/components/ui/bar-list";
 import { Button } from "@/components/ui/button";
-import { apiGet } from "@/lib/api";
+import { all, apiGet } from "@/lib/api";
 import { ROLE_LABELS, formatDate, titleCase } from "@/lib/format";
 import { readNotice, single } from "@/lib/forms";
 import { requireSession } from "@/lib/session";
@@ -59,15 +59,16 @@ function Detail({ entry }: { entry: AuditEntry }) {
 
 export default async function AuditPage({ searchParams }: Props) {
   const params = await searchParams;
-  await requireSession("/admin/audit");
-
   const query = new URLSearchParams({ limit: "200" });
   for (const key of ["entity_type", "action", "actor_id"]) {
     const value = single(params[key]);
     if (value) query.set(key, value);
   }
 
-  const audit = await apiGet<{ items: AuditEntry[]; count: number }>("/admin/audit?" + query.toString());
+  const [, audit] = await all(
+    requireSession("/admin/audit"),
+    apiGet<{ items: AuditEntry[]; count: number }>("/admin/audit?" + query.toString()),
+  );
   const notice = readNotice(params);
   const intact = notice?.includes("intact") ?? false;
   const filtered = ["entity_type", "action", "actor_id"].some((key) => single(params[key]));

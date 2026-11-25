@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { ApiError } from "@/lib/api";
@@ -75,6 +76,9 @@ export async function withResult(
   } catch (error) {
     destination = problemUrl(path, error);
   }
+  // Visited pages are kept briefly in the browser (staleTimes in next.config.mjs); after a
+  // change, every one of them has to be read again.
+  revalidatePath("/", "layout");
   redirect(destination);
 }
 

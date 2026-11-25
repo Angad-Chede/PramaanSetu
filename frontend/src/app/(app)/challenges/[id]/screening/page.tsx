@@ -4,7 +4,7 @@ import { CircleAlert, CircleCheck, CircleX, FileSearch, Inbox, Scale, ShieldChec
 import { overrideEligibility, runWorkflowStep } from "@/app/challenges/actions";
 import { Disclosure, SelectField, SubmitButton, TextAreaField } from "@/components/app/forms";
 import { Callout, EmptyState, Flash, LinkButton, Page, PageHeader, Panel, StateBadge, ToneBadge, type Tone } from "@/components/app/kit";
-import { apiGetOrNotFound } from "@/lib/api";
+import { all, apiGetOrNotFound } from "@/lib/api";
 import { APPLICATION_STATE_LABELS, CHALLENGE_STATE_LABELS, formatDateTime, money } from "@/lib/format";
 import { hasRole, requireSession } from "@/lib/session";
 import type { Challenge, Eligibility, EligibilityRule } from "@/lib/types";
@@ -76,9 +76,11 @@ function RuleRow({ rule }: { rule: EligibilityRule }) {
 export default async function ScreeningPage({ params, searchParams }: Props) {
   const { id } = await params;
   const query = await searchParams;
-  const session = await requireSession("/challenges/" + id + "/screening");
-  const challenge = await apiGetOrNotFound<Challenge>("/challenges/" + id);
-  const applications = await apiGetOrNotFound<{ items: Row[]; count: number }>("/challenges/" + id + "/applications");
+  const [session, challenge, applications] = await all(
+    requireSession("/challenges/" + id + "/screening"),
+    apiGetOrNotFound<Challenge>("/challenges/" + id),
+    apiGetOrNotFound<{ items: Row[]; count: number }>("/challenges/" + id + "/applications"),
+  );
 
   const canOverride = hasRole(session, "DO") && session.department_id === challenge.department_id;
   const screened = applications.items.filter((row) => row.eligibility);

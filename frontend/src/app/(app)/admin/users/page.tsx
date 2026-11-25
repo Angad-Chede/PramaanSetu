@@ -7,7 +7,7 @@ import { SelectField, SubmitButton } from "@/components/app/forms";
 import { EmptyState, Flash, Page, PageHeader, Panel } from "@/components/app/kit";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { apiGet } from "@/lib/api";
+import { all, apiGet } from "@/lib/api";
 import { ROLE_LABELS, formatDateTime, initials } from "@/lib/format";
 import { single } from "@/lib/forms";
 import { requireSession } from "@/lib/session";
@@ -63,14 +63,15 @@ const DUTIES = [
 
 export default async function AdminUsersPage({ searchParams }: Props) {
   const params = await searchParams;
-  await requireSession("/admin/users");
-
   const roleFilter = single(params.role);
   const query = new URLSearchParams({ limit: "300" });
   if (roleFilter) query.set("role", roleFilter);
 
-  const users = await apiGet<{ items: AdminUser[] }>("/admin/users?" + query.toString());
-  const departments = await apiGet<{ items: Department[] }>("/admin/departments");
+  const [, users, departments] = await all(
+    requireSession("/admin/users"),
+    apiGet<{ items: AdminUser[] }>("/admin/users?" + query.toString()),
+    apiGet<{ items: Department[] }>("/admin/departments"),
+  );
   const departmentName = new Map(departments.items.map((d) => [d.id, d.name]));
 
   const counts = new Map<string, number>();

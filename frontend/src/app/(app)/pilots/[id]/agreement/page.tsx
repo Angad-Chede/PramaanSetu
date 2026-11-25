@@ -15,7 +15,7 @@ import {
   ToneBadge,
 } from "@/components/app/kit";
 import { Button } from "@/components/ui/button";
-import { apiGet, apiGetOptional, apiGetOrNotFound } from "@/lib/api";
+import { all, apiGet, apiGetOptional, apiGetOrNotFound } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { IP_OPTION_LABELS, PILOT_STATE_LABELS, formatDate, formatDateTime, money } from "@/lib/format";
 import { hasRole, requireSession } from "@/lib/session";
@@ -66,10 +66,12 @@ function humanize(key: string): string {
 export default async function AgreementPage({ params, searchParams }: Props) {
   const { id } = await params;
   const query = await searchParams;
-  const session = await requireSession("/pilots/" + id + "/agreement");
-  const pilot = await apiGetOrNotFound<Pilot>("/pilots/" + id);
-  const versions = await apiGet<{ items: Agreement[] }>("/pilots/" + id + "/agreements");
-  const defaults = await apiGetOptional<Defaults>("/pilots/" + id + "/agreement/defaults");
+  const [session, pilot, versions, defaults] = await all(
+    requireSession("/pilots/" + id + "/agreement"),
+    apiGetOrNotFound<Pilot>("/pilots/" + id),
+    apiGet<{ items: Agreement[] }>("/pilots/" + id + "/agreements"),
+    apiGetOptional<Defaults>("/pilots/" + id + "/agreement/defaults"),
+  );
 
   const isOfficer = hasRole(session, "DO") && session.department_id === pilot.department_id;
   const isApprover = hasRole(session, "DA") && session.department_id === pilot.department_id;

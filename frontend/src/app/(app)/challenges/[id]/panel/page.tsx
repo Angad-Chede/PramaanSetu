@@ -5,7 +5,7 @@ import { assignPanel, runWorkflowStep } from "@/app/challenges/actions";
 import { SubmitButton } from "@/components/app/forms";
 import { EmptyState, Flash, Meter, Page, PageHeader, Panel, StateBadge, ToneBadge } from "@/components/app/kit";
 import { Checkbox } from "@/components/ui/checkbox";
-import { apiGetOptional, apiGetOrNotFound } from "@/lib/api";
+import { all, apiGetOptional, apiGetOrNotFound } from "@/lib/api";
 import { CHALLENGE_STATE_LABELS, ROLE_LABELS, formatDate } from "@/lib/format";
 import { hasRole, requireSession } from "@/lib/session";
 import type { Challenge } from "@/lib/types";
@@ -92,11 +92,13 @@ function PickList({
 export default async function PanelPage({ params, searchParams }: Props) {
   const { id } = await params;
   const query = await searchParams;
-  const session = await requireSession("/challenges/" + id + "/panel");
-  const challenge = await apiGetOrNotFound<Challenge>("/challenges/" + id);
-  const panel = await apiGetOrNotFound<{ items: Member[] }>("/challenges/" + id + "/panel");
-  const progress = await apiGetOptional<Progress>("/evaluation/" + id + "/progress");
-  const candidates = await apiGetOptional<{ items: AdminUser[] }>("/admin/users?limit=300");
+  const [session, challenge, panel, progress, candidates] = await all(
+    requireSession("/challenges/" + id + "/panel"),
+    apiGetOrNotFound<Challenge>("/challenges/" + id),
+    apiGetOrNotFound<{ items: Member[] }>("/challenges/" + id + "/panel"),
+    apiGetOptional<Progress>("/evaluation/" + id + "/progress"),
+    apiGetOptional<{ items: AdminUser[] }>("/admin/users?limit=300"),
+  );
 
   const canAssign = hasRole(session, "DO") && session.department_id === challenge.department_id;
   const evaluators = panel.items.filter((m) => m.role === "EE");

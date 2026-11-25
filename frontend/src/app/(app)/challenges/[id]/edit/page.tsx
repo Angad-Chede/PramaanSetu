@@ -4,7 +4,7 @@ import { CheckCircle2, CircleAlert, Eye, Sparkles, TriangleAlert, Wand2 } from "
 import { autosaveChallenge, requestAiDraft, saveChallengeAndReturn, submitChallenge } from "@/app/challenges/actions";
 import { Disclosure, SubmitButton } from "@/components/app/forms";
 import { Callout, Flash, LinkButton, Page, PageHeader, Panel, StateBadge, fieldLabel } from "@/components/app/kit";
-import { apiGet, apiGetOrNotFound } from "@/lib/api";
+import { all, apiGet, apiGetOrNotFound } from "@/lib/api";
 import { CHALLENGE_STATE_LABELS, IP_OPTION_LABELS, formatDateTime } from "@/lib/format";
 import { requireSession } from "@/lib/session";
 import type { Challenge, QualityFlag } from "@/lib/types";
@@ -46,9 +46,11 @@ type Props = {
 export default async function EditChallengePage({ params, searchParams }: Props) {
   const { id } = await params;
   const query = await searchParams;
-  await requireSession("/challenges/" + id + "/edit");
-  const challenge = await apiGetOrNotFound<Challenge>("/challenges/" + id);
-  const checklist = await apiGet<Checklist>("/challenges/" + id + "/checklist");
+  const [, challenge, checklist] = await all(
+    requireSession("/challenges/" + id + "/edit"),
+    apiGetOrNotFound<Challenge>("/challenges/" + id),
+    apiGet<Checklist>("/challenges/" + id + "/checklist"),
+  );
 
   const editable = challenge.state === "Draft";
   const rules = (challenge.eligibility_rules ?? {}) as Record<string, unknown>;

@@ -6,7 +6,7 @@ import { decideChallenge } from "@/app/challenges/actions";
 import { SubmitButton, TextAreaField } from "@/components/app/forms";
 import { Callout, Deadline, Flash, KeyValues, Page, PageHeader, Panel, StateBadge } from "@/components/app/kit";
 import { Button } from "@/components/ui/button";
-import { apiGetOrNotFound } from "@/lib/api";
+import { all, apiGetOrNotFound } from "@/lib/api";
 import { CHALLENGE_STATE_LABELS, IP_OPTION_LABELS, money } from "@/lib/format";
 import { requireSession } from "@/lib/session";
 import type { Challenge } from "@/lib/types";
@@ -31,8 +31,7 @@ type Props = {
 export default async function ReviewPage({ params, searchParams }: Props) {
   const { id } = await params;
   const query = await searchParams;
-  const session = await requireSession("/challenges/" + id + "/review");
-  const challenge = await apiGetOrNotFound<Challenge>("/challenges/" + id);
+  const [session, challenge] = await all(requireSession("/challenges/" + id + "/review"), apiGetOrNotFound<Challenge>("/challenges/" + id));
 
   const isOwnDraft = challenge.created_by === session.id;
   const decidable = challenge.state === "InReview" && !isOwnDraft;

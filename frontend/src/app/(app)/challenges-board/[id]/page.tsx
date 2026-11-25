@@ -7,7 +7,7 @@ import { SubmitButton, TextAreaField } from "@/components/app/forms";
 import { Callout, EmptyState, Flash, LinkButton, Page, PageHeader, Panel, ToneBadge } from "@/components/app/kit";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Timeline, type TimelineItem } from "@/components/ui/timeline";
-import { apiGetOptional, apiGetOrNotFound } from "@/lib/api";
+import { all, apiGetOptional, apiGetOrNotFound } from "@/lib/api";
 import { IP_OPTION_LABELS, compactRupees, formatDateTime, isOverdue, relativeDeadline } from "@/lib/format";
 import { getSession, hasRole } from "@/lib/session";
 import type { Application } from "@/lib/types";
@@ -72,8 +72,16 @@ const AFTER: TimelineItem[] = [
 export default async function PublicChallengePage({ params, searchParams }: Props) {
   const { id } = await params;
   const query = await searchParams;
-  const session = await getSession();
-  const challenge = await apiGetOrNotFound<PublicChallenge>("/public/challenges/" + id);
+  const sessionRead = getSession();
+  const [session, challenge, mine] = await all(
+    sessionRead,
+    apiGetOrNotFound<PublicChallenge>("/public/challenges/" + id),
+    sessionRead.then((signedIn) =>
+      hasRole(signedIn, "SU") && signedIn?.startup_id
+        ? apiGetOptional<{ items: { id: string; challenge_id: string }[] }>("/startups/" + signedIn.startup_id + "/applications")
+        : null,
+    ),
+  );
 
   const isStartup = hasRole(session, "SU");
   const closed = isOverdue(challenge.application_deadline) || challenge.state !== "Published";
@@ -81,7 +89,6 @@ export default async function PublicChallengePage({ params, searchParams }: Prop
 
   let existing: Application | null = null;
   if (isStartup && session?.startup_id) {
-    const mine = await apiGetOptional<{ items: { id: string; challenge_id: string }[] }>("/startups/" + session.startup_id + "/applications");
     const match = mine?.items.find((row) => row.challenge_id === challenge.id);
     if (match) existing = (await apiGetOptional<Application>("/applications/" + match.id)) ?? null;
   }

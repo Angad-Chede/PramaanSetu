@@ -19,7 +19,7 @@ import { moveDemoClock, runSchedulerNow } from "@/app/actions";
 import { CheckField, SubmitButton, TextField } from "@/components/app/forms";
 import { Callout, Figure, FigureGrid, Flash, KeyValues, Meter, Page, PageHeader, Panel, RowLink, RowList, ToneBadge } from "@/components/app/kit";
 import { DonutChart } from "@/components/ui/donut-chart";
-import { apiGet, apiGetOptional } from "@/lib/api";
+import { all, apiGet, apiGetOptional } from "@/lib/api";
 import { decimal, formatDateTime } from "@/lib/format";
 import { hasRole, requireSession } from "@/lib/session";
 import { cn } from "@/lib/utils";
@@ -83,9 +83,11 @@ const LINKS = [
 
 export default async function AdminPage({ searchParams }: Props) {
   const params = await searchParams;
-  const session = await requireSession("/admin");
-  const status = await apiGet<Status>("/status");
-  const dashboard = await apiGetOptional<Dashboard>("/admin/dashboard");
+  const [session, status, dashboard] = await all(
+    requireSession("/admin"),
+    apiGet<Status>("/status"),
+    apiGetOptional<Dashboard>("/admin/dashboard"),
+  );
   const isAdmin = hasRole(session, "PA");
 
   const waiting = Object.values(status.queues).reduce((sum, depth) => sum + depth, 0);

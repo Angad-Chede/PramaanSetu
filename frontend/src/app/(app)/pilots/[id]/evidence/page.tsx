@@ -6,7 +6,7 @@ import { SubmitButton } from "@/components/app/forms";
 import { Callout, EmptyState, Flash, Hash, KeyValues, LinkButton, Page, PageHeader, Panel, ToneBadge, type Tone, bandToneOf } from "@/components/app/kit";
 import { Gauge } from "@/components/ui/gauge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { apiGetOptional, apiGetOrNotFound } from "@/lib/api";
+import { all, apiGetOptional, apiGetOrNotFound } from "@/lib/api";
 import { ANALYSIS_METHOD_LABELS, decimal, formatDateTime, signed } from "@/lib/format";
 import { hasRole, requireSession } from "@/lib/session";
 import { cn } from "@/lib/utils";
@@ -39,9 +39,11 @@ type Props = {
 export default async function EvidencePage({ params, searchParams }: Props) {
   const { id } = await params;
   const query = await searchParams;
-  const session = await requireSession("/pilots/" + id + "/evidence");
-  const pilot = await apiGetOrNotFound<Pilot>("/pilots/" + id);
-  const report = await apiGetOptional<EvidenceReport>("/pilots/" + id + "/evidence");
+  const [session, pilot, report] = await all(
+    requireSession("/pilots/" + id + "/evidence"),
+    apiGetOrNotFound<Pilot>("/pilots/" + id),
+    apiGetOptional<EvidenceReport>("/pilots/" + id + "/evidence"),
+  );
 
   const canRun = hasRole(session, "DO") && session.department_id === pilot.department_id;
   const analysis = report?.analysis ?? {};

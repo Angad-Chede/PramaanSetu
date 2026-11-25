@@ -15,7 +15,7 @@ import {
   StateBadge,
   ToneBadge,
 } from "@/components/app/kit";
-import { apiGet } from "@/lib/api";
+import { all, apiGet } from "@/lib/api";
 import { PILOT_STATE_LABELS, compactRupees, formatDate, money } from "@/lib/format";
 import { hasRole, requireSession } from "@/lib/session";
 import type { Pilot } from "@/lib/types";
@@ -34,9 +34,8 @@ type Props = { searchParams: Promise<Record<string, string | string[] | undefine
 
 export default async function PilotsPage({ searchParams }: Props) {
   const params = await searchParams;
-  const session = await requireSession("/pilots");
+  const [session, body] = await all(requireSession("/pilots"), apiGet<{ items: PilotRow[]; count: number }>("/pilots?limit=100"));
   const startup = hasRole(session, "SU") && !hasRole(session, "DO", "DA", "FO", "PA");
-  const body = await apiGet<{ items: PilotRow[]; count: number }>("/pilots?limit=100");
 
   const pilots = body.items;
   const breaches = pilots.reduce((sum, pilot) => sum + pilot.overdue_milestones, 0);

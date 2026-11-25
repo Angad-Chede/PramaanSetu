@@ -7,7 +7,7 @@ import { AutosaveForm, SubmitButton, TextAreaField, TextField } from "@/componen
 import { Callout, EmptyState, Flash, LinkButton, Page, PageHeader, Panel, ToneBadge, type Tone } from "@/components/app/kit";
 import { Gauge } from "@/components/ui/gauge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { apiGet, apiGetOptional } from "@/lib/api";
+import { all, apiGet, apiGetOptional } from "@/lib/api";
 import { bandTone, decimal, formatDate, formatDateTime, signed } from "@/lib/format";
 import { requireSession } from "@/lib/session";
 import type { Passport } from "@/lib/types";
@@ -58,9 +58,21 @@ type Props = { searchParams: Promise<Record<string, string | string[] | undefine
 
 export default async function StartupProfilePage({ searchParams }: Props) {
   const query = await searchParams;
-  const session = await requireSession("/startup");
+  const sessionRead = requireSession("/startup");
+  // the profile reads start as soon as the session names the startup, not after the check below
+  const [session, profile] = await all(
+    sessionRead,
+    sessionRead.then((s) =>
+      s.startup_id
+        ? all(
+            apiGet<Startup>("/startups/" + s.startup_id),
+            apiGetOptional<{ items: Passport[]; note: string }>("/startups/" + s.startup_id + "/passports"),
+          )
+        : null,
+    ),
+  );
 
-  if (!session.startup_id) {
+  if (!session.startup_id || !profile) {
     return (
       <Page>
         <PageHeader title="Startup profile" />
@@ -73,8 +85,7 @@ export default async function StartupProfilePage({ searchParams }: Props) {
     );
   }
 
-  const startup = await apiGet<Startup>("/startups/" + session.startup_id);
-  const passports = await apiGetOptional<{ items: Passport[]; note: string }>("/startups/" + session.startup_id + "/passports");
+  const [startup, passports] = profile;
 
   const recognised = startup.dpiit_status === "Verified";
   const recognitionTone: Tone = recognised ? "success" : startup.dpiit_status === "Pending" ? "warning" : "destructive";

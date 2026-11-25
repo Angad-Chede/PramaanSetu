@@ -4,7 +4,7 @@ import { ArrowRight, Bot, Download, GitCommitVertical, Link2, ScrollText, Shield
 import { cn } from "@/lib/utils";
 import { EmptyState, Figure, FigureGrid, Hash, Page, PageHeader, ToneBadge, toneFor } from "@/components/app/kit";
 import { Button } from "@/components/ui/button";
-import { apiGet, apiGetOrNotFound } from "@/lib/api";
+import { all, apiGet, apiGetOrNotFound } from "@/lib/api";
 import { ROLE_LABELS, formatDate, formatDateTime, titleCase } from "@/lib/format";
 import { requireSession } from "@/lib/session";
 import type { AuditEntry, Challenge } from "@/lib/types";
@@ -27,9 +27,11 @@ type Props = { params: Promise<{ id: string }> };
 
 export default async function ChallengeAuditPage({ params }: Props) {
   const { id } = await params;
-  await requireSession("/challenges/" + id + "/audit");
-  const challenge = await apiGetOrNotFound<Challenge>("/challenges/" + id);
-  const audit = await apiGet<{ items: AuditEntry[] }>("/challenges/" + id + "/audit?limit=300");
+  const [, challenge, audit] = await all(
+    requireSession("/challenges/" + id + "/audit"),
+    apiGetOrNotFound<Challenge>("/challenges/" + id),
+    apiGet<{ items: AuditEntry[] }>("/challenges/" + id + "/audit?limit=300"),
+  );
 
   const ordered = [...audit.items].sort((a, b) => a.seq - b.seq);
   const transitions = ordered.filter((entry) => entry.before && entry.after && "state" in entry.before && "state" in entry.after).length;

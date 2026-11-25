@@ -171,6 +171,21 @@ export async function apiGetOptional<T>(path: string): Promise<T | null> {
   }
 }
 
+/**
+ * Runs a page's reads at the same time, like Promise.all, but waits for every one and
+ * then throws the first failure in argument order rather than the first to arrive. Put
+ * requireSession() first and a signed-out visitor is always sent to sign in, never
+ * shown the 401 of a read that happened to fail sooner; a notFound() read placed
+ * before an optional one wins the same way.
+ */
+export async function all<T extends readonly unknown[]>(...reads: { [K in keyof T]: Promise<T[K]> }): Promise<T> {
+  const results = await Promise.allSettled(reads);
+  for (const result of results) {
+    if (result.status === "rejected") throw result.reason;
+  }
+  return results.map((result) => (result as PromiseFulfilledResult<unknown>).value) as unknown as T;
+}
+
 /** Raw fetch for binary downloads such as generated PDFs. */
 export async function apiFetchRaw(path: string): Promise<Response> {
   return fetch(API_ORIGIN + PREFIX + path, {

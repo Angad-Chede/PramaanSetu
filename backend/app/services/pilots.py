@@ -29,7 +29,7 @@ from app.models.payment import Milestone
 from app.models.pilot import AgreementVersion, MetricSubmission, Pilot
 from app.models.simulation import PilotDesign
 from app.models.startup import Startup
-from app.services import audit, files, outbox, pdf, templates
+from app.services import audit, files, outbox, templates
 from app.services.adapters.esign import get_esign_adapter
 
 MIN_MILESTONES = 2
@@ -448,6 +448,8 @@ async def draft_agreement(
 
 
 async def _render_agreement_pdf(session: AsyncSession, pilot: Pilot, version: AgreementVersion):
+    from app.services import pdf  # reportlab loads on first use
+
     challenge = await session.get(Challenge, pilot.challenge_id)
     startup = await session.get(Startup, pilot.startup_id)
     design = await design_for(session, pilot.id)

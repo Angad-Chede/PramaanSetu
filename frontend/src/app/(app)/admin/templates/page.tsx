@@ -17,7 +17,7 @@ import { installTemplates } from "@/app/actions";
 import { Disclosure, SubmitButton } from "@/components/app/forms";
 import { Callout, Flash, Page, PageHeader, ToneBadge } from "@/components/app/kit";
 import { Badge } from "@/components/ui/badge";
-import { apiGet } from "@/lib/api";
+import { all, apiGet } from "@/lib/api";
 import { formatDate, titleCase } from "@/lib/format";
 import { requireSession } from "@/lib/session";
 
@@ -72,8 +72,7 @@ function sizeOf(body: Record<string, unknown>): string {
 
 export default async function TemplatesPage({ searchParams }: Props) {
   const params = await searchParams;
-  await requireSession("/admin/templates");
-  const body = await apiGet<{ items: Template[]; note: string }>("/admin/templates");
+  const [, body] = await all(requireSession("/admin/templates"), apiGet<{ items: Template[]; note: string }>("/admin/templates"));
 
   const items = [...body.items].sort((a, b) => {
     const order = (kind: string) => (KIND_ORDER.indexOf(kind) === -1 ? 99 : KIND_ORDER.indexOf(kind));

@@ -7,7 +7,7 @@ with every run, so any result can be reproduced exactly.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -15,7 +15,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.core.errors import NotFound, ValidationFailed
 from app.core.policy import Principal
-from app.domain.simulator import SimulationInputs, run_simulation
 from app.models.application import Application
 from app.models.challenge import Challenge, Kpi
 from app.models.pilot import MetricSubmission, Pilot
@@ -25,6 +24,10 @@ from app.services import audit, jobs, outbox
 ANALYSIS_METHOD_FOR_KIND = {"proportion": "two_proportion", "continuous": "paired_t"}
 
 
+if TYPE_CHECKING:
+    from app.domain.simulator import SimulationInputs
+
+
 async def prepare_inputs(
     session: AsyncSession,
     pilot: Pilot,
@@ -32,6 +35,8 @@ async def prepare_inputs(
     overrides: dict[str, Any] | None = None,
 ) -> tuple[SimulationInputs, Kpi, Challenge, int]:
     """Assemble the simulator inputs from the challenge, the proposal and any overrides."""
+    from app.domain.simulator import SimulationInputs  # scipy loads on first use
+
     challenge = await session.get(Challenge, pilot.challenge_id)
     if challenge is None:
         raise NotFound("The challenge for this pilot was not found.")
@@ -192,6 +197,8 @@ async def queue_run(
 
 async def execute_run(session: AsyncSession, run_id: str) -> SimulationRun:
     """Idempotent worker body: a completed run is returned as it stands."""
+    from app.domain.simulator import SimulationInputs, run_simulation
+
     run = await session.get(SimulationRun, run_id)
     if run is None:
         raise NotFound("Simulation run " + run_id + " was not found.")

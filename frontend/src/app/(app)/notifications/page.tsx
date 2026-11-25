@@ -20,7 +20,7 @@ import { markNotificationsRead } from "@/app/actions";
 import { SubmitButton } from "@/components/app/forms";
 import { Deadline, EmptyState, Flash, Page, PageHeader, Panel, ToneBadge } from "@/components/app/kit";
 import { Button } from "@/components/ui/button";
-import { apiGet } from "@/lib/api";
+import { all, apiGet } from "@/lib/api";
 import { formatDate, formatDateTime } from "@/lib/format";
 import { requireSession } from "@/lib/session";
 import type { Notification } from "@/lib/types";
@@ -57,8 +57,10 @@ function dayKey(value: string): string {
 
 export default async function NotificationsPage({ searchParams }: Props) {
   const params = await searchParams;
-  await requireSession("/notifications");
-  const body = await apiGet<{ items: Notification[]; unread_count: number }>("/me/notifications?limit=100");
+  const [, body] = await all(
+    requireSession("/notifications"),
+    apiGet<{ items: Notification[]; unread_count: number }>("/me/notifications?limit=100"),
+  );
 
   const actionRequired = body.items.filter((n) => n.action_required && !n.read);
   const rest = body.items.filter((n) => !(n.action_required && !n.read));

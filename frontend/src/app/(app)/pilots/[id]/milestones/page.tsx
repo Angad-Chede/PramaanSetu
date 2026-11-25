@@ -4,7 +4,7 @@ import { BadgeIndianRupee, CircleAlert, FileCheck2, History, Receipt, Repeat2 } 
 import { milestoneAction } from "@/app/pilots/actions";
 import { Disclosure, SubmitButton, TextAreaField, TextField } from "@/components/app/forms";
 import { Callout, EmptyState, Flash, KeyValues, Page, PageHeader, Panel, StateBadge, ToneBadge } from "@/components/app/kit";
-import { apiGet, apiGetOrNotFound } from "@/lib/api";
+import { all, apiGet, apiGetOrNotFound } from "@/lib/api";
 import { ROLE_LABELS, formatDate, formatRupees, money } from "@/lib/format";
 import { hasRole, requireSession } from "@/lib/session";
 import { cn } from "@/lib/utils";
@@ -34,15 +34,17 @@ type Props = {
 export default async function MilestonesPage({ params, searchParams }: Props) {
   const { id } = await params;
   const query = await searchParams;
-  const session = await requireSession("/pilots/" + id + "/milestones");
-  const pilot = await apiGetOrNotFound<Pilot>("/pilots/" + id);
-  const body = await apiGet<{
-    items: Milestone[];
-    total_value: Money;
-    paid_value: Money;
-    outstanding_value: Money;
-    note: string;
-  }>("/pilots/" + id + "/milestones");
+  const [session, pilot, body] = await all(
+    requireSession("/pilots/" + id + "/milestones"),
+    apiGetOrNotFound<Pilot>("/pilots/" + id),
+    apiGet<{
+      items: Milestone[];
+      total_value: Money;
+      paid_value: Money;
+      outstanding_value: Money;
+      note: string;
+    }>("/pilots/" + id + "/milestones"),
+  );
 
   const back = "/pilots/" + id + "/milestones";
   const isStartup = session.startup_id === pilot.startup_id;
