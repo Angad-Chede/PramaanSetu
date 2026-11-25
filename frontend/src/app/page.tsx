@@ -294,7 +294,7 @@ export default async function LandingPage() {
               </span>
               Startup pilots for government · {open.length} challenges open
             </Eyebrow>
-            <h1 id="main" className="font-serif text-[clamp(54px,8.2vw,124px)] leading-[0.94] tracking-[-0.045em] lg:whitespace-nowrap">
+            <h1 id="main" className="font-serif text-[clamp(52px,7.5vw,112px)] leading-[0.94] tracking-[-0.045em] lg:whitespace-nowrap">
               <span className="hero-line">
                 <span className="[--d:120ms]">Buy what works.</span>
               </span>
