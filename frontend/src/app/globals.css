@@ -399,3 +399,11 @@
     opacity: 1;
   }
 }
+
+/* no visible page scrollbar; the page still scrolls */
+html {
+  scrollbar-width: none;
+}
+html::-webkit-scrollbar {
+  display: none;
+}
