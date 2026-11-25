@@ -407,3 +407,9 @@ html {
 html::-webkit-scrollbar {
   display: none;
 }
+
+@keyframes dept-loop {
+  to {
+    transform: translateX(-50%);
+  }
+}

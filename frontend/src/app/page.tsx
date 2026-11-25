@@ -318,15 +318,22 @@ export default async function LandingPage() {
 
         {departments.length > 0 && (
           <div className="hero-after relative z-10 border-t border-white/15 bg-cobalt-deep/30 backdrop-blur-md [--d:800ms]">
-            <Wrap className="flex items-center gap-8 overflow-x-auto py-5 [mask-image:linear-gradient(to_right,#000_85%,transparent)] [scrollbar-width:none]">
+            <Wrap className="flex items-center gap-8 py-5">
               <Eyebrow className="shrink-0 text-white/55">Open now at</Eyebrow>
-              <ul className="flex shrink-0 items-center gap-8">
-                {departments.slice(0, 4).map((name) => (
-                  <li key={name} className="shrink-0 border-l border-white/20 pl-8 font-serif text-[19px] tracking-[-0.01em] whitespace-nowrap text-white/90">
-                    {shortDepartment(name)}
-                  </li>
-                ))}
-              </ul>
+              {/* the departments loop round: two identical runs, the track slides by one run */}
+              <div className="min-w-0 flex-1 overflow-hidden [mask-image:linear-gradient(to_right,transparent,#000_6%,#000_90%,transparent)]">
+                <div className="flex w-max animate-[dept-loop_40s_linear_infinite] hover:[animation-play-state:paused] motion-reduce:animate-none">
+                  {[0, 1].map((run) => (
+                    <ul key={run} aria-hidden={run === 1} className="flex shrink-0 items-center">
+                      {departments.map((name) => (
+                        <li key={name} className="shrink-0 border-l border-white/20 px-8 font-serif text-[19px] tracking-[-0.01em] whitespace-nowrap text-white/90">
+                          {shortDepartment(name)}
+                        </li>
+                      ))}
+                    </ul>
+                  ))}
+                </div>
+              </div>
             </Wrap>
           </div>
         )}
