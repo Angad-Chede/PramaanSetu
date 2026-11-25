@@ -420,7 +420,7 @@ export default async function MyApplicationPage({ params, searchParams }: Props)
 
           <Panel title="Cost against the ceiling">
             <div className="flex items-baseline justify-between gap-3">
-              <span className="font-display text-2xl font-semibold tracking-tight tabular-nums">
+              <span className="font-serif text-[30px] font-normal tracking-[-0.025em] tabular-nums">
                 {application.pilot_cost ? compactRupees(application.pilot_cost.paise).replace("INR ", "₹") : "Not quoted"}
               </span>
               <span className="text-[13px] text-muted-foreground">of {ceiling ? compactRupees(ceiling.paise).replace("INR ", "₹") : "no published ceiling"}</span>

@@ -276,7 +276,7 @@ export default async function ScreeningPage({ params, searchParams }: Props) {
             <Panel title="Results" description={applications.count + (applications.count === 1 ? " application received" : " applications received")}>
               <div className="flex flex-col gap-5">
                 <div className="flex items-baseline gap-2">
-                  <span className="font-display text-4xl font-semibold tracking-tight tabular-nums">{counts.Eligible}</span>
+                  <span className="font-serif text-[40px] font-normal tracking-[-0.03em] tabular-nums">{counts.Eligible}</span>
                   <span className="text-sm text-muted-foreground">eligible to go to the panel</span>
                 </div>
                 <SplitBar

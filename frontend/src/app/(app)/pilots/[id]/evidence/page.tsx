@@ -146,7 +146,7 @@ export default async function EvidencePage({ params, searchParams }: Props) {
                   <div className="flex flex-col gap-1">
                     <span className="text-[13px] font-medium text-muted-foreground">{String(analysis.primary_kpi_name ?? "Primary measure")}</span>
                     <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                      <span className="font-display text-4xl font-semibold tracking-tight tabular-nums">{signed(Number(analysis.effect), 2)}</span>
+                      <span className="font-serif text-[40px] font-normal tracking-[-0.03em] tabular-nums">{signed(Number(analysis.effect), 2)}</span>
                       <span className="text-[15px] text-muted-foreground">{unit}</span>
                       {Number.isFinite(relative) && (
                         <ToneBadge tone={analysis.excludes_zero_95 ? "success" : "warning"} dot={false}>

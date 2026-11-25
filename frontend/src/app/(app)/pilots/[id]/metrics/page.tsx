@@ -257,7 +257,7 @@ export default async function MetricsPage({ params, searchParams }: Props) {
             <Panel title="Against the plan">
               <div className="flex flex-col gap-3">
                 <div className="flex items-baseline justify-between">
-                  <span className="font-display text-3xl font-semibold tracking-tight tabular-nums">{dashboard.measurements_received}</span>
+                  <span className="font-serif text-[32px] font-normal tracking-[-0.025em] tabular-nums">{dashboard.measurements_received}</span>
                   <span className="text-[13px] text-muted-foreground tabular-nums">of {dashboard.plan.planned_unit_periods} planned</span>
                 </div>
                 <Meter

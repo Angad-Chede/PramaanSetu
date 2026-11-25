@@ -84,7 +84,7 @@ export default async function MilestonesPage({ params, searchParams }: Props) {
           <div className="grid gap-6 sm:grid-cols-3">
             <div className="flex flex-col gap-1">
               <span className="text-[13px] font-medium text-muted-foreground">Agreement value</span>
-              <span className="font-display text-3xl font-semibold tracking-tight tabular-nums">
+              <span className="font-serif text-[32px] font-normal tracking-[-0.025em] tabular-nums">
                 <span className="mr-1 text-lg text-muted-foreground">₹</span>
                 {formatRupees(body.total_value.paise).replace(/\.00$/, "")}
               </span>
@@ -94,7 +94,7 @@ export default async function MilestonesPage({ params, searchParams }: Props) {
             </div>
             <div className="flex flex-col gap-1">
               <span className="text-[13px] font-medium text-muted-foreground">Paid to the startup</span>
-              <span className="font-display text-3xl font-semibold tracking-tight text-success-ink tabular-nums">
+              <span className="font-serif text-[32px] font-normal tracking-[-0.025em] text-success-ink tabular-nums">
                 <span className="mr-1 text-lg opacity-70">₹</span>
                 {formatRupees(body.paid_value.paise).replace(/\.00$/, "")}
               </span>
@@ -104,7 +104,7 @@ export default async function MilestonesPage({ params, searchParams }: Props) {
             </div>
             <div className="flex flex-col gap-1">
               <span className="text-[13px] font-medium text-muted-foreground">Outstanding</span>
-              <span className="font-display text-3xl font-semibold tracking-tight tabular-nums">
+              <span className="font-serif text-[32px] font-normal tracking-[-0.025em] tabular-nums">
                 <span className="mr-1 text-lg text-muted-foreground">₹</span>
                 {formatRupees(body.outstanding_value.paise).replace(/\.00$/, "")}
               </span>
@@ -231,7 +231,7 @@ function MilestoneCard({
             </div>
           </div>
           <div className="flex shrink-0 flex-col md:items-end">
-            <span className="font-display text-2xl font-semibold tracking-tight tabular-nums">
+            <span className="font-serif text-[30px] font-normal tracking-[-0.025em] tabular-nums">
               <span className="mr-0.5 text-base text-muted-foreground">₹</span>
               {formatRupees(milestone.amount_paise).replace(/\.00$/, "")}
             </span>

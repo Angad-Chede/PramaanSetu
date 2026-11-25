@@ -168,7 +168,7 @@ export default async function AdminPage({ searchParams }: Props) {
                   ].map((item) => (
                     <div key={item.label} className={cn("flex flex-col-reverse justify-end gap-1.5 rounded-2xl p-4", item.alert ? "bg-destructive/8" : "bg-surface/70")}>
                       <dt className="text-[12px] leading-snug text-muted-foreground">{item.label}</dt>
-                      <dd className={cn("font-display text-2xl leading-none font-semibold tracking-tight tabular-nums", item.alert && "text-destructive-ink")}>{item.value}</dd>
+                      <dd className={cn("font-serif text-[30px] leading-none font-normal tracking-[-0.025em] tabular-nums", item.alert && "text-destructive-ink")}>{item.value}</dd>
                     </div>
                   ))}
                 </dl>

@@ -1,27 +1,33 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { ArrowRight, ArrowUpRight, BadgeCheck, Clock3, FileCheck2, IndianRupee, Stamp, Users } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Menu } from "lucide-react";
 
-import { HeroWindow, type HeroPassport } from "@/components/landing/hero-window";
-import { LiquidType, MarqueeRow } from "@/components/landing/moments";
-import { SiteHeader } from "@/components/site/site-header";
-import { Button } from "@/components/ui/button";
+import { BrandMark } from "@/components/app/brand";
+import { ArtLens } from "@/components/landing/art-lens";
+import { Chapters, type Chapter } from "@/components/landing/chapters";
+import { EvidenceWindow, type EvidencePassport } from "@/components/landing/evidence-window";
+import { Seal } from "@/components/landing/seal";
+import { SealRow } from "@/components/landing/seals";
+import { BlindScores, ChallengeDraft, PaymentClock, PowerCurve, ScoreBars, StagePanel } from "@/components/landing/stage-visuals";
+import { Statement } from "@/components/landing/statement";
 import { apiGetOptional } from "@/lib/api";
 import { cn } from "@/lib/utils";
-import { navigationFor } from "@/lib/session";
 
 export const metadata: Metadata = {
   title: { absolute: "PramaanSetu: startup pilots for government departments" },
   description:
-    "Write an outcome-based challenge, design the pilot before it starts, and buy on a result an independent validator has signed.",
+    "Government departments run a startup's pilot with the measure fixed before it starts, the data locked, and an independent validator's signature before anything is bought.",
 };
 export const dynamic = "force-dynamic";
 
 /*
-  tasteskill deal (software): hero split · palette from the product's own saffron and paper, so the
-  site and the app it signs you into read as one · type Reddit Sans + JetBrains Mono · buttons pill ·
-  rhythm dark-band · close-word · footer-statement · moments liquid-type (statement) and marquee-row.
+  Art direction: Thomas and William Daniell's aquatints of Indian bridges and ghats (1790s,
+  public domain), printed as halftones in paper on cobalt. Setu is a bridge; the page is
+  built on one. Type: Geist Serif over Geist Sans, figures in Geist Mono. Ground: cobalt,
+  paper and ink, with the vermilion of an office seal. Moments: the hero's lens on the
+  painting, the statement lit word by word, the five records pinned beside their pictures,
+  and the seals pressed onto the page.
 */
 
 type Transparency = {
@@ -40,15 +46,14 @@ type PublicChallenge = {
   district: string | null;
   state_code: string | null;
   department_name: string | null;
-  outcome_statement?: string;
   budget_ceiling: { display: string } | null;
-  pilot_duration_weeks: number;
   days_remaining: number | null;
 };
 
 type Passport = {
   reference: string;
   department_name: string;
+  startup_name: string;
   confidence_score: number;
   band: string;
   result_summary: {
@@ -59,213 +64,115 @@ type Passport = {
     relative_effect_percent: number;
     ci_low: number;
     ci_high: number;
+    method: string;
   };
 };
 
-const STATE_NAMES: Record<string, string> = {
-  MH: "Maharashtra",
-  RJ: "Rajasthan",
-  TN: "Tamil Nadu",
-  KA: "Karnataka",
-  GJ: "Gujarat",
-  DL: "Delhi",
-  UP: "Uttar Pradesh",
+const FALLBACK_PASSPORT: EvidencePassport = {
+  reference: "IP-2XE939",
+  department: "Pune Municipal Corporation Water Supply Department",
+  startup: "DrishtiTech",
+  measure: "Non-revenue water",
+  unit: "percent of water supplied",
+  baseline: 31.1,
+  pilot: 25.4,
+  relative: -18.5,
+  ciLow: -7.2,
+  ciHigh: -4.3,
+  score: 91.2,
+  band: "Strong",
+  method: "Paired comparison of the same units before and after",
 };
 
+const NAV = [
+  { href: "/challenges-board", label: "Challenges" },
+  { href: "/demand", label: "Demand" },
+  { href: "/evidence", label: "Evidence" },
+  { href: "/transparency", label: "Transparency" },
+];
+
 function rupeesShort(display: string | undefined) {
-  if (!display) return "Budget on request";
+  if (!display) return "On request";
   const value = Number(display.replace(/,/g, ""));
   if (!Number.isFinite(value)) return "Rs " + display;
   if (value >= 1e7) return "Rs " + (value / 1e7).toFixed(2).replace(/\.?0+$/, "") + " crore";
   return "Rs " + (value / 1e5).toFixed(1).replace(/\.0$/, "") + " lakh";
 }
 
+/** A department's name without the words every one of them shares. */
+function shortDepartment(name: string) {
+  return name.replace(/\s+(Department|Directorate)$/i, "");
+}
+
 /* -------------------------------------------------------------------------- */
 
 function Wrap({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={cn("wrap relative z-[1] mx-auto w-full max-w-[1280px] px-6 md:px-12 xl:px-0", className)}>{children}</div>;
+  return <div className={cn("relative mx-auto w-full max-w-[1320px] px-5 sm:px-8 lg:px-12", className)}>{children}</div>;
 }
 
-function Screen({ id, children, className, screens = 1, dark = false }: { id?: string; children: ReactNode; className?: string; screens?: 1 | 2; dark?: boolean }) {
+function Eyebrow({ children, className }: { children: ReactNode; className?: string }) {
+  return <p className={cn("font-mono text-[12px] tracking-[0.08em] uppercase", className)}>{children}</p>;
+}
+
+function Nav() {
   return (
-    <section
-      id={id}
+    <header className="absolute inset-x-0 top-0 z-20">
+      <Wrap className="flex items-center gap-3 pt-5">
+        <Link href="/" className="flex h-11 items-center gap-2.5 rounded-[10px] bg-white/10 px-3.5 ring-1 ring-white/15 backdrop-blur-md outline-none focus-visible:ring-2 focus-visible:ring-white">
+          <BrandMark className="size-6" />
+          <span className="text-[15px] font-semibold tracking-tight">PramaanSetu</span>
+        </Link>
+        <nav aria-label="Main" className="hidden h-11 items-center gap-1 rounded-[10px] bg-white/10 px-1.5 ring-1 ring-white/15 backdrop-blur-md md:flex">
+          {NAV.map((item) => (
+            <Link key={item.href} href={item.href} className="rounded-[7px] px-3.5 py-2 text-[14px] text-white/85 transition-colors duration-150 outline-none hover:bg-white/12 hover:text-white focus-visible:ring-2 focus-visible:ring-white">
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+        <Link href="/signin" className="ml-auto flex h-11 items-center rounded-[10px] bg-white/10 px-4 text-[14px] font-medium ring-1 ring-white/15 backdrop-blur-md transition-colors outline-none hover:bg-white/20 focus-visible:ring-2 focus-visible:ring-white">
+          Sign in
+        </Link>
+        <details className="group relative md:hidden">
+          <summary aria-label="Menu" className="grid size-11 cursor-pointer list-none place-items-center rounded-[10px] bg-white/10 ring-1 ring-white/15 backdrop-blur-md [&::-webkit-details-marker]:hidden">
+            <Menu className="size-5" />
+          </summary>
+          <div className="absolute top-14 right-0 flex w-56 flex-col rounded-[12px] bg-cobalt-deep/95 p-2 ring-1 ring-white/15 backdrop-blur-md">
+            {NAV.map((item) => (
+              <Link key={item.href} href={item.href} className="rounded-[8px] px-3 py-3 text-[15px] text-white/90 hover:bg-white/10">
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        </details>
+      </Wrap>
+    </header>
+  );
+}
+
+function PrimaryButton({ href, children, tone = "paper", className }: { href: string; children: ReactNode; tone?: "paper" | "ink" | "cobalt"; className?: string }) {
+  return (
+    <Link
+      href={href}
       className={cn(
-        "section relative pt-24 pb-16 lg:pt-[120px] lg:pb-16",
-        "min-h-svh",
-        screens === 1 ? "lg:h-svh" : "sm:min-h-[200svh] lg:h-[200svh]",
-        dark && "dark bg-[#0e0e10] bg-[radial-gradient(60%_30%_at_50%_0%,rgba(255,255,255,0.06),transparent)] text-foreground",
+        "group inline-flex h-[52px] items-center justify-center gap-2 rounded-[10px] px-6 text-[15px] font-medium transition-[translate,background-color,box-shadow] duration-150 outline-none hover:-translate-y-px focus-visible:ring-2 focus-visible:ring-offset-2 active:translate-y-0 active:scale-[0.99]",
+        tone === "paper" && "bg-paper text-ink shadow-[0_10px_30px_-12px_rgba(0,0,0,0.5)] hover:bg-white focus-visible:ring-white focus-visible:ring-offset-cobalt",
+        tone === "ink" && "bg-ink text-paper hover:bg-black focus-visible:ring-ink focus-visible:ring-offset-paper",
+        tone === "cobalt" && "bg-cobalt text-white hover:bg-[#1a31b8] focus-visible:ring-cobalt focus-visible:ring-offset-paper",
         className,
       )}
     >
       {children}
-    </section>
+      <ArrowRight className="size-4 transition-transform duration-200 ease-ios group-hover:translate-x-0.5" />
+    </Link>
   );
 }
 
-function H2({ children, className }: { children: ReactNode; className?: string }) {
-  return <h2 className={cn("max-w-[20ch] font-display text-[30px] leading-[1.08] font-medium tracking-[-0.03em] text-balance lg:text-[48px]", className)}>{children}</h2>;
-}
-
-function Lead({ children, className }: { children: ReactNode; className?: string }) {
-  return <p className={cn("max-w-[52ch] text-[17px] leading-[1.55] text-pretty text-muted-foreground lg:text-[19px]", className)}>{children}</p>;
-}
-
-function PrimaryActions({ size = "lg", className }: { size?: "lg" | "default"; className?: string }) {
+function TextLink({ href, children, className }: { href: string; children: ReactNode; className?: string }) {
   return (
-    <div className={cn("flex flex-col gap-3 sm:flex-row sm:items-center", className)}>
-      <Button asChild size={size} variant="default" className="h-12 px-6 text-[15px] hover:-translate-y-px dark:bg-white dark:text-[#111]">
-        <Link href="/signin">
-          Sign in to your workspace
-          <ArrowRight className="transition-transform duration-200 ease-ios group-hover:translate-x-0.5" />
-        </Link>
-      </Button>
-      <Button asChild size={size} variant="secondary" className="h-12 px-6 text-[15px] hover:-translate-y-px">
-        <Link href="/challenges-board">See open challenges</Link>
-      </Button>
-    </div>
-  );
-}
-
-/* -------------------------------------------------------------------------- */
-/* Card fragments: real product UI, small                                       */
-/* -------------------------------------------------------------------------- */
-
-function GateCard({ title, body, children, className }: { title: string; body: string; children: ReactNode; className?: string }) {
-  return (
-    <article className={cn("card group flex flex-col overflow-hidden rounded-[28px] bg-white/[0.04] ring-1 ring-white/[0.08] transition-[translate,background-color] duration-200 ease-ios hover:-translate-y-0.5 hover:bg-white/[0.06]", className)}>
-      <div className="relative hidden min-h-0 flex-1 items-center justify-center overflow-hidden bg-[radial-gradient(120%_90%_at_50%_0%,rgba(255,255,255,0.07),transparent_70%)] p-5 sm:flex">{children}</div>
-      <div className="flex flex-col gap-1.5 p-6 pt-4">
-        <h3 className="font-display text-[19px] font-medium tracking-tight text-white">{title}</h3>
-        <p className="text-[15px] leading-relaxed text-white/60">{body}</p>
-      </div>
-    </article>
-  );
-}
-
-function Panel({ children, className }: { children: ReactNode; className?: string }) {
-  return <div data-ui className={cn("w-full max-w-[340px] rounded-2xl bg-[#1c1c1e] p-4 text-white shadow-[0_0_0_1px_rgba(255,255,255,0.07),0_20px_40px_-12px_rgba(0,0,0,0.6)]", className)}>{children}</div>;
-}
-
-function BuilderFragment() {
-  const rows = [
-    { name: "Non-revenue water", base: "31.1%", target: "26.0%" },
-    { name: "Complaints resolved in 48 h", base: "62%", target: "80%" },
-  ];
-  return (
-    <Panel>
-      <p className="text-[11px] text-white/45">Measures drafted from Template Kit v3</p>
-      <div className="mt-3 flex flex-col gap-2">
-        {rows.map((row, index) => (
-          <div key={row.name} className="rounded-xl bg-white/[0.05] px-3 py-2.5">
-            <div className="flex items-center justify-between gap-2 text-[13px]">
-              <span className="truncate font-medium">{row.name}</span>
-              {index === 0 && <span className="shrink-0 rounded-full bg-brand/20 px-2 py-0.5 text-[10px] font-medium text-[#ff9a6b]">Primary</span>}
-            </div>
-            <div className="mt-1.5 flex gap-4 font-mono text-[11px] text-white/55">
-              <span>baseline {row.base}</span>
-              <span>target {row.target}</span>
-            </div>
-          </div>
-        ))}
-      </div>
-    </Panel>
-  );
-}
-
-function SimulatorFragment() {
-  const points = [8, 14, 23, 34, 46, 58, 68, 76, 82, 86, 89, 91];
-  const path = points.map((y, i) => `${i === 0 ? "M" : "L"}${(i / (points.length - 1)) * 280},${100 - y}`).join(" ");
-  return (
-    <Panel>
-      <div className="flex items-center justify-between text-[11px] text-white/45">
-        <span>Power by sample size, 10,000 runs</span>
-        <span className="font-mono text-[#ff9a6b]">n = 48</span>
-      </div>
-      <svg viewBox="0 0 280 100" className="mt-3 h-24 w-full overflow-visible" aria-hidden>
-        <line x1="0" x2="280" y1="20" y2="20" stroke="rgba(255,255,255,0.25)" strokeDasharray="3 4" />
-        <text x="0" y="14" fill="rgba(255,255,255,0.45)" fontSize="9">80% power</text>
-        <path d={path} fill="none" stroke="#fc4c01" strokeWidth="2.5" strokeLinecap="round" />
-        <circle cx={(8 / 11) * 280} cy="20" r="4.5" fill="#fc4c01" stroke="#1c1c1e" strokeWidth="2" />
-      </svg>
-      <p className="mt-2 text-[12px] text-white/60">Smallest design inside the budget ceiling</p>
-    </Panel>
-  );
-}
-
-function EvidenceFragment({ score }: { score: number }) {
-  return (
-    <Panel>
-      <div className="flex items-end justify-between">
-        <div>
-          <p className="text-[11px] text-white/45">Evidence Confidence Score</p>
-          <p className="mt-1 font-display text-[28px] font-medium tracking-tight tabular-nums">{score.toFixed(1)}</p>
-        </div>
-        <span className="rounded-full bg-[#30d158]/15 px-2 py-0.5 text-[11px] font-medium text-[#30d158]">Strong</span>
-      </div>
-      <div className="mt-3 flex h-2 gap-1 overflow-hidden rounded-full">
-        {[30, 25, 20, 15, 10].map((weight, index) => (
-          <span key={weight} className="h-full rounded-full" style={{ flex: weight, background: index === 0 ? "#fc4c01" : `rgba(255,255,255,${0.55 - index * 0.09})` }} />
-        ))}
-      </div>
-      <p className="mt-2 font-mono text-[10px] text-white/45">effect 30 · confidence 25 · data 20 · protocol 15 · validation 10</p>
-    </Panel>
-  );
-}
-
-function PulseFragment({ days }: { days: number | null }) {
-  const steps = [
-    { label: "Accept", sla: "7 days", state: "done" },
-    { label: "Approve", sla: "5 days", state: "done" },
-    { label: "Release", sla: "7 days", state: "now" },
-  ];
-  return (
-    <Panel className="max-w-[460px] lg:scale-110">
-      <div className="flex items-center justify-between text-[11px] text-white/45">
-        <span>Milestone 2 of 3 · Rs 9.6 lakh</span>
-        <span className="inline-flex items-center gap-1">
-          <Clock3 className="size-3" />
-          Finance Officer holds it
-        </span>
-      </div>
-      <div className="mt-4 grid grid-cols-3 gap-2">
-        {steps.map((step) => (
-          <div key={step.label} className="flex flex-col gap-2">
-            <span className={cn("h-1.5 rounded-full", step.state === "done" ? "bg-white/70" : "bg-white/10")}>
-              {step.state === "now" && <span className="block h-full w-[62%] rounded-full bg-brand" />}
-            </span>
-            <span className="text-[13px] font-medium">{step.label}</span>
-            <span className="font-mono text-[11px] text-white/45">{step.sla}</span>
-          </div>
-        ))}
-      </div>
-      <p className="mt-4 text-[12px] text-white/60">
-        Reminder at 75 percent of the clock. {days ? `Average ${Math.round(days)} days from submission to payment.` : ""}
-      </p>
-    </Panel>
-  );
-}
-
-function PassportFragment({ passport }: { passport: HeroPassport }) {
-  return (
-    <Panel className="max-w-[460px] lg:scale-110">
-      <div className="flex items-center justify-between text-[11px] text-white/45">
-        <span className="font-mono">{passport.reference}</span>
-        <span className="inline-flex items-center gap-1 text-[#30d158]">
-          <BadgeCheck className="size-3.5" />
-          Validated
-        </span>
-      </div>
-      <p className="mt-3 font-display text-[17px] font-medium tracking-tight">{passport.measure}</p>
-      <p className="mt-1 font-display text-[28px] font-medium tracking-tight text-[#ff9a6b] tabular-nums">{passport.relative.toFixed(1)}%</p>
-      <div className="mt-3 flex flex-wrap gap-1.5">
-        {["Urban utility", "Metered supply", "Similar zone size"].map((fit) => (
-          <span key={fit} className="rounded-full bg-white/[0.07] px-2.5 py-1 text-[11px] text-white/70">
-            {fit}
-          </span>
-        ))}
-      </div>
-    </Panel>
+    <Link href={href} className={cn("group inline-flex items-center gap-1.5 text-[15px] font-medium underline-offset-[6px] outline-none hover:underline focus-visible:underline", className)}>
+      {children}
+      <ArrowUpRight className="size-4 transition-transform duration-200 ease-ios group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+    </Link>
   );
 }
 
@@ -279,19 +186,14 @@ export default async function LandingPage() {
   ]);
 
   const open = board?.items ?? [];
-  const departments = new Set(open.map((item) => item.department_name).filter(Boolean));
-  const words = Array.from(
-    new Set(
-      open.flatMap((item) => [item.sector, item.district ?? (item.state_code ? STATE_NAMES[item.state_code] ?? item.state_code : null)]).filter((word): word is string => Boolean(word)),
-    ),
-  );
-  const marquee = words.length >= 4 ? words : [...words, "Water", "Urban solid waste", "Energy", "Agriculture", "Public health"].filter((word, index, all) => all.indexOf(word) === index);
+  const departments = Array.from(new Set(open.map((item) => item.department_name).filter((name): name is string => Boolean(name))));
 
   const top = passports?.items?.[0];
-  const passport: HeroPassport = top
+  const passport: EvidencePassport = top
     ? {
         reference: top.reference,
         department: top.department_name,
+        startup: top.startup_name,
         measure: top.result_summary.measure,
         unit: top.result_summary.unit,
         baseline: top.result_summary.baseline_mean,
@@ -301,251 +203,387 @@ export default async function LandingPage() {
         ciHigh: top.result_summary.ci_high,
         score: top.confidence_score,
         band: top.band,
+        method: top.result_summary.method,
       }
-    : {
-        reference: "IP-VGXDMZ",
-        department: "Pune Municipal Corporation",
-        measure: "Non-revenue water",
-        unit: "percent of water supplied",
-        baseline: 31.1,
-        pilot: 25.4,
-        relative: -18.5,
-        ciLow: -7.2,
-        ciHigh: -4.3,
-        score: 91.2,
-        band: "Strong",
-      };
+    : FALLBACK_PASSPORT;
 
   const figures = [
-    { value: transparency?.challenges_published ?? 0, label: "challenges published", icon: FileCheck2 },
-    { value: transparency?.registered_startups ?? 0, label: "startups registered", icon: Users },
-    { value: transparency?.average_confidence_score != null ? transparency.average_confidence_score.toFixed(1) : "0", label: "average confidence score of validated pilots", icon: BadgeCheck },
-    { value: transparency?.average_days_submission_to_payment != null ? Math.round(transparency.average_days_submission_to_payment) : 0, label: "days from milestone submission to payment, on average", icon: IndianRupee },
+    { label: "Challenges published by departments", value: String(transparency?.challenges_published ?? 0) },
+    { label: "Startups registered and checked against the registry", value: String(transparency?.registered_startups ?? 0) },
+    { label: "Average Evidence Confidence Score of validated pilots", value: transparency?.average_confidence_score != null ? transparency.average_confidence_score.toFixed(1) : "–" },
+    { label: "Days from a milestone's submission to its payment, on average", value: transparency?.average_days_submission_to_payment != null ? String(Math.round(transparency.average_days_submission_to_payment)) : "–" },
   ];
 
-  const signers = [
-    { gate: "Publication", who: "Department Approver", icon: Stamp },
-    { gate: "Shortlist", who: "Expert panel, scoring blinded", icon: Users },
-    { gate: "Evidence", who: "Independent Validator", icon: BadgeCheck },
-    { gate: "Payment", who: "Finance Officer", icon: IndianRupee },
+  const chapters: Chapter[] = [
+    {
+      number: "01",
+      title: "Two paragraphs become a challenge",
+      body: "An officer describes the problem in their own words. The Template Kit drafts the measures, the methods, a baseline plan and a weighted rubric, and the Department Approver publishes it.",
+      visual: (
+        <StagePanel art="/art/arches-dots.webp" position="50% 70%">
+          <ChallengeDraft />
+        </StagePanel>
+      ),
+    },
+    {
+      number: "02",
+      title: "Proposals are scored without names",
+      body: "An expert panel scores each proposal against the published rubric with the company's name hidden. Every score, and the ranking it makes, is on the record.",
+      visual: (
+        <StagePanel art="/art/fort-dots.webp" position="60% 40%">
+          <BlindScores />
+        </StagePanel>
+      ),
+    },
+    {
+      number: "03",
+      title: "The pilot runs 10,000 times before it starts",
+      body: "The simulator finds the smallest design that reaches 80 percent power inside the budget ceiling, or says plainly that none does. The design is then frozen.",
+      visual: (
+        <StagePanel art="/art/ghat-dots.webp" position="70% 60%">
+          <PowerCurve />
+        </StagePanel>
+      ),
+    },
+    {
+      number: "04",
+      title: "The data is locked, then read",
+      body: "Measurements are hash-locked. The analysis registered before day one runs on them as written, and an independent validator signs the result or refuses it.",
+      visual: (
+        <StagePanel art="/art/bridge-dots.webp" position="40% 80%">
+          <ScoreBars score={passport.score} />
+        </StagePanel>
+      ),
+    },
+    {
+      number: "05",
+      title: "Payments run on a clock, results travel",
+      body: "Every milestone carries a service level, with a reminder at 75 percent and one escalation. A validated result becomes an Innovation Passport the next department can reuse.",
+      visual: (
+        <StagePanel art="/art/arches-dots.webp" position="30% 30%">
+          <PaymentClock />
+        </StagePanel>
+      ),
+    },
+  ];
+
+  const seals = [
+    { id: "da", role: "Department Approver", initials: "DA", act: "Approved", detail: "Publishes the challenge, signs the agreement and the scale decision.", turn: "-9deg" },
+    { id: "ep", role: "Expert Panel", initials: "EP", act: "Scored", detail: "Scores every proposal against the rubric, names hidden.", turn: "6deg" },
+    { id: "iv", role: "Independent Validator", initials: "IV", act: "Validated", detail: "Checks the data and the analysis, then signs or refuses.", turn: "-4deg" },
+    { id: "fo", role: "Finance Officer", initials: "FO", act: "Released", detail: "Releases each milestone payment inside its service level.", turn: "10deg" },
   ];
 
   return (
-    <>
-      <script
-        dangerouslySetInnerHTML={{
-          __html: "document.documentElement.classList.add('m-enter');setTimeout(()=>document.documentElement.classList.add('m-enter-done'),700)",
-        }}
-      />
-      <SiteHeader items={navigationFor(null)} overlay className="font-display" />
-      <main id="main" className="font-display" data-type="software">
-        {/* hero: split, one screen under the header */}
-        <section className="hero relative flex min-h-svh flex-col overflow-clip bg-[radial-gradient(50%_45%_at_75%_0%,color-mix(in_oklab,var(--brand)_10%,transparent),transparent_70%)] pt-[96px] pb-16 lg:h-svh lg:pt-[120px] lg:pb-16" data-enter>
-          <Wrap className="flex flex-1 flex-col">
-            <div className="hero-text flex flex-1 flex-col gap-8 lg:grid lg:h-full lg:grid-cols-12 lg:gap-6">
-            <div className="flex min-w-0 flex-col lg:col-span-5">
-              <p className="text-[14px] font-medium text-brand-ink animate-enter">{open.length} challenges open for applications</p>
-              <h1 className="mt-4 text-[40px] leading-[1.02] font-medium tracking-[-0.04em] text-balance lg:text-[72px]">
-                <span className="block animate-enter [animation-delay:60ms]">Startup pilots for</span>
-                <span className="block animate-enter [animation-delay:140ms]">government departments</span>
-              </h1>
-              <p className="mt-6 max-w-[42ch] text-[17px] leading-[1.5] text-pretty text-muted-foreground animate-enter [animation-delay:240ms] lg:text-[20px]">
-                Write an outcome-based challenge, design the pilot before it starts, and buy on a result an independent validator has signed.
-              </p>
-              <PrimaryActions className="mt-8 animate-enter [animation-delay:320ms]" />
-            </div>
-            <div className="hero__window relative min-w-0 animate-settle rounded-[28px] [animation-delay:120ms] lg:col-span-6 lg:col-start-7 lg:h-full lg:overflow-hidden">
-              <HeroWindow passport={passport} />
-            </div>
-            </div>
-          </Wrap>
-        </section>
+    <div className="bg-paper text-ink">
+      <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-md focus:bg-paper focus:px-4 focus:py-2 focus:text-ink">
+        Skip to content
+      </a>
 
-        {/* open challenges, with the marquee-row moment */}
-        <Screen id="challenges" className="bg-card">
-          <Wrap className="flex h-full flex-col">
-            <div className="grid gap-6 lg:grid-cols-12">
-              <H2 className="lg:col-span-6">Open challenges from {departments.size || "several"} departments</H2>
-              <Lead className="lg:col-span-6 lg:col-start-7">
-                Each one states its measure, its baseline and its budget ceiling. Apply with a proposal; turnover is never the first filter.
-              </Lead>
+      {/* ---------------------------------------------------------------- hero */}
+      <section className="relative flex min-h-[100svh] flex-col overflow-hidden bg-cobalt text-white">
+        <Nav />
+        <ArtLens dots="/art/bridge-dots.webp" color="/art/bridge-color.jpg" className="absolute inset-x-0 bottom-0 h-[40svh] [mask-image:linear-gradient(to_bottom,transparent_8%,#000_48%)] sm:h-[58svh] lg:h-[64svh]" />
+        
+        <Wrap className="relative z-10 grid flex-1 content-start gap-10 pt-32 pb-[30svh] sm:pt-40 sm:pb-10 lg:grid-cols-12 lg:items-end lg:gap-8 lg:pt-[17svh]">
+          <div className="lg:col-span-8">
+            <Eyebrow className="hero-after mb-7 flex items-center gap-2.5 text-white/75 [--d:100ms]">
+              <span className="relative flex size-2">
+                <span className="absolute inset-0 animate-ping rounded-full bg-vermilion opacity-70 motion-reduce:hidden" />
+                <span className="relative size-2 rounded-full bg-vermilion" />
+              </span>
+              Startup pilots for government · {open.length} challenges open
+            </Eyebrow>
+            <h1 id="main" className="font-serif text-[clamp(54px,8.2vw,124px)] leading-[0.94] tracking-[-0.045em] lg:whitespace-nowrap">
+              <span className="hero-line">
+                <span className="[--d:120ms]">Buy what works.</span>
+              </span>
+              <span className="hero-line">
+                <span className="text-white/55 [--d:240ms]">Prove it first.</span>
+              </span>
+            </h1>
+          </div>
+          <div className="hero-after flex flex-col gap-7 [--d:500ms] lg:col-span-4 lg:col-start-9 lg:pb-3">
+            <p className="max-w-[40ch] text-[17px] leading-[1.55] text-white/85">
+              PramaanSetu runs a startup&apos;s pilot the way a trial is run: the measure and the pass mark fixed before it starts, the data locked, and an independent validator&apos;s signature before a department buys.
+            </p>
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-4">
+              <PrimaryButton href="/signin">Sign in to your workspace</PrimaryButton>
+              <TextLink href="/challenges-board" className="text-white">
+                See the open challenges
+              </TextLink>
             </div>
-            <MarqueeRow items={marquee} className="mt-6 lg:mt-8" />
-            <ul className="mt-6 grid gap-6 lg:mt-6 lg:min-h-0 lg:flex-1 lg:grid-cols-3">
-              {open.slice(0, 3).map((item) => (
-                <li key={item.id}>
-                  <Link
-                    href={"/challenges-board/" + item.id}
-                    className="card group flex h-full min-h-[240px] flex-col rounded-[28px] bg-surface p-6 transition-[translate,box-shadow] duration-200 ease-ios outline-none hover:-translate-y-0.5 hover:shadow-float focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-card"
-                  >
-                    <div className="flex items-center justify-between gap-3 text-[13px] text-muted-foreground">
-                      <span>{item.sector ?? "Open challenge"}</span>
-                      <ArrowUpRight className="size-4 transition-transform duration-200 ease-ios group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                    </div>
-                    <h3 className="mt-4 text-[20px] leading-snug font-medium tracking-tight text-balance">{item.title}</h3>
-                    <p className="mt-2 line-clamp-2 text-[14px] text-muted-foreground">{item.department_name}</p>
-                    {item.outcome_statement && (
-                      <p className="mt-5 hidden border-l-2 border-brand/50 pl-3 text-[14px] leading-relaxed text-pretty text-foreground/80 lg:line-clamp-3">{item.outcome_statement}</p>
-                    )}
-                    <div className="mt-auto flex items-end justify-between gap-3 pt-6">
-                      <div>
-                        <p className="text-[12px] text-muted-foreground">Budget ceiling</p>
-                        <p className="text-[17px] font-medium tabular-nums">{rupeesShort(item.budget_ceiling?.display)}</p>
-                      </div>
-                      <p className="rounded-full bg-surface px-2.5 py-1 text-[12px] text-muted-foreground tabular-nums">
-                        {item.days_remaining != null ? `${Math.max(0, Math.round(item.days_remaining))} days left` : `${item.pilot_duration_weeks} week pilot`}
-                      </p>
-                    </div>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </Wrap>
-        </Screen>
+          </div>
+        </Wrap>
 
-        {/* the five gates, a dark band over two screens */}
-        <Screen id="how" screens={2} dark>
-          <Wrap className="flex h-full flex-col gap-6 text-white">
-            <div className="flex min-h-0 flex-1 flex-col gap-10 lg:max-h-[calc(100svh-184px)]">
-              <div className="grid gap-6 lg:grid-cols-12">
-                <H2 className="text-white lg:col-span-6">Five records between a problem and a purchase order</H2>
-                <Lead className="text-white/60 lg:col-span-6 lg:col-start-7">
-                  Each stage of PramaanSetu produces one artefact. The next stage cannot open until that artefact exists and a named official has accepted it.
-                </Lead>
-              </div>
-              <div className="grid min-h-0 flex-1 gap-6 md:grid-cols-3">
-                <GateCard title="Turns two paragraphs into a challenge" body="Measures, methods, a baseline plan and a weighted rubric, drafted from a versioned Template Kit.">
-                  <BuilderFragment />
-                </GateCard>
-                <GateCard title="Runs the pilot 10,000 times first" body="It picks the smallest design that reaches 80 percent power inside the budget, or says none does.">
-                  <SimulatorFragment />
-                </GateCard>
-                <GateCard title="Scores the evidence from 0 to 100" body="The pre-registered analysis runs on a hash-locked dataset. An independent validator signs or refuses.">
-                  <EvidenceFragment score={passport.score} />
-                </GateCard>
-              </div>
-            </div>
-            <div className="grid min-h-0 flex-1 gap-6 pt-16 md:grid-cols-2 lg:max-h-[calc(100svh-120px)] lg:pt-[120px]">
-              <GateCard title="Puts a clock on every payment" body="Each milestone state carries a service level. The holder is reminded at 75 percent; a breach escalates exactly once.">
-                <PulseFragment days={transparency?.average_days_submission_to_payment ?? null} />
-              </GateCard>
-              <GateCard title="Lets another department reuse the result" body="An Innovation Passport carries the validated result, with a context fit check for where it may not transfer.">
-                <PassportFragment passport={passport} />
-              </GateCard>
-            </div>
-          </Wrap>
-        </Screen>
+        {departments.length > 0 && (
+          <div className="hero-after relative z-10 border-t border-white/15 bg-cobalt-deep/30 backdrop-blur-md [--d:800ms]">
+            <Wrap className="flex items-center gap-8 overflow-x-auto py-5 [mask-image:linear-gradient(to_right,#000_85%,transparent)] [scrollbar-width:none]">
+              <Eyebrow className="shrink-0 text-white/55">Open now at</Eyebrow>
+              <ul className="flex shrink-0 items-center gap-8">
+                {departments.slice(0, 4).map((name) => (
+                  <li key={name} className="shrink-0 border-l border-white/20 pl-8 font-serif text-[19px] tracking-[-0.01em] whitespace-nowrap text-white/90">
+                    {shortDepartment(name)}
+                  </li>
+                ))}
+              </ul>
+            </Wrap>
+          </div>
+        )}
+      </section>
 
-        {/* statement, with the liquid-type moment */}
-        <Screen id="rule">
-          <Wrap className="flex h-full flex-col">
-            <LiquidType className="max-w-[14ch] text-[44px] leading-[1] font-medium tracking-[-0.045em] text-balance sm:text-[88px] lg:text-[120px]">
-              Nothing advances on a vendor&apos;s word.
-            </LiquidType>
-            <Lead className="mt-8">Every gate needs a recorded artefact, and a named official approves each consequential step. Every approval lands in a hash-chained audit log.</Lead>
-            <ul className="mt-10 grid grid-cols-2 gap-3 lg:mt-auto lg:grid-cols-4 lg:gap-6">
-              {signers.map((signer) => (
-                <li key={signer.gate} className="flex flex-col gap-4 rounded-[28px] bg-card p-5 shadow-card lg:gap-6 lg:p-6">
-                  <span className="grid size-10 place-items-center rounded-2xl bg-brand/10 text-brand-ink">
-                    <signer.icon className="size-[18px]" />
-                  </span>
-                  <div>
-                    <p className="text-[13px] text-muted-foreground">{signer.gate}</p>
-                    <p className="mt-1 text-[16px] leading-snug font-medium tracking-tight lg:text-[18px]">{signer.who}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </Wrap>
-        </Screen>
-
-        {/* figures and who it serves */}
-        <Screen id="figures" className="bg-card">
-          <Wrap className="flex h-full flex-col">
-            <div className="grid gap-6 lg:grid-cols-12">
-              <H2 className="lg:col-span-6">Platform figures from its own event records</H2>
-              <Lead className="lg:col-span-6 lg:col-start-7">Recomputed from the platform&apos;s records on every visit. None of them carries personal data.</Lead>
+      {/* ------------------------------------------------------------ evidence */}
+      <section className="relative py-24 lg:py-32">
+        <Wrap className="flex flex-col gap-14">
+          <div className="grid gap-8 lg:grid-cols-12 lg:items-end">
+            <div className="lg:col-span-7">
+              <Eyebrow className="mb-5 text-cobalt">The evidence report</Eyebrow>
+              <h2 className="max-w-[16ch] font-serif text-[44px] leading-[1.02] tracking-[-0.035em] sm:text-[64px]">One page decides whether a department buys</h2>
             </div>
-            <dl className="mt-10 grid grid-cols-2 gap-x-6 gap-y-8 lg:grid-cols-4">
+            <p className="max-w-[46ch] text-[17px] leading-[1.6] text-ink/65 lg:col-span-4 lg:col-start-9">
+              Every pilot ends in a score out of 100, built from the effect, its confidence, the data, the protocol and an independent sign-off. This one is real: {passport.startup}&apos;s pilot for {shortDepartment(passport.department)}.
+            </p>
+          </div>
+          <div className="relative overflow-hidden rounded-[24px] bg-cobalt p-4 sm:p-10 lg:p-16">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/art/ghat-dots.webp" alt="" aria-hidden loading="lazy" className="absolute inset-0 size-full object-cover object-[50%_65%] opacity-80" />
+            <div className="relative">
+              <EvidenceWindow passport={passport} />
+            </div>
+          </div>
+        </Wrap>
+      </section>
+
+      {/* ----------------------------------------------------------- statement */}
+      <section className="relative overflow-hidden bg-cobalt-deep py-28 text-white lg:py-40">
+        <Wrap className="flex flex-col gap-24 lg:gap-36">
+          <div className="grid gap-8 lg:grid-cols-12">
+            <Eyebrow className="text-white/50 lg:col-span-2 lg:pt-4">How it works</Eyebrow>
+            <Statement
+              className="font-serif text-[32px] leading-[1.16] tracking-[-0.025em] sm:text-[44px] lg:col-span-10 lg:text-[56px]"
+              text="A department writes down its problem. Startups propose a fix. The measure, the method and the pass mark are frozen before day one, the data is locked as it comes in, and an independent validator signs the result. Only then does anyone talk about a purchase order."
+            />
+          </div>
+          <div className="grid gap-8 lg:grid-cols-12">
+            <div className="lg:col-span-4">
+              <h2 className="max-w-[18ch] font-serif text-[32px] leading-[1.1] tracking-[-0.02em]">The platform&apos;s own figures</h2>
+              <p className="mt-4 max-w-[36ch] text-[15px] leading-relaxed text-white/55">Recomputed from its event records on every visit. None of them carries personal data.</p>
+            </div>
+            <dl className="lg:col-span-8">
               {figures.map((figure) => (
-                <div key={figure.label} className="flex flex-col gap-2 border-t pt-5">
-                  <dt className="order-2 max-w-[24ch] text-[14px] leading-snug text-muted-foreground">{figure.label}</dt>
-                  <dd className="order-1 text-[38px] leading-none font-medium tracking-[-0.03em] tabular-nums lg:text-[56px]">{figure.value}</dd>
+                <div key={figure.label} className="grid grid-cols-[1fr_auto] items-baseline gap-6 border-t border-white/15 py-6 last:border-b sm:grid-cols-[1fr_1.1fr]">
+                  <dt className="max-w-[30ch] text-[15px] leading-snug text-white/70">{figure.label}</dt>
+                  <dd className="font-serif text-[52px] leading-none tracking-[-0.03em] tabular-nums sm:text-[76px]">{figure.value}</dd>
                 </div>
               ))}
             </dl>
-            <div className="mt-12 grid gap-6 md:grid-cols-2 lg:mt-auto">
-              {[
-                {
-                  title: "For departments",
-                  href: "/signin",
-                  cta: "Sign in to your workspace",
-                  points: ["Standard pilot terms and an agreement drafted from the challenge", "A sample size and budget checked before anyone signs", "A defensible basis to procure, or a clear reason not to"],
-                },
-                {
-                  title: "For startups",
-                  href: "/demand",
-                  cta: "See departmental demand",
-                  points: ["Where departmental demand is, by sector and state", "Who holds your payment and how long they have left", "Validated results that travel to the next department"],
-                },
-              ].map((side) => (
-                <div key={side.title} className="card flex flex-col gap-5 rounded-[28px] bg-surface p-6 lg:p-8">
-                  <h3 className="text-[22px] font-medium tracking-tight">{side.title}</h3>
-                  <ul className="flex flex-col gap-3">
-                    {side.points.map((point) => (
-                      <li key={point} className="flex gap-3 text-[15px] leading-snug text-muted-foreground">
-                        <span aria-hidden className="mt-2 size-1.5 shrink-0 rounded-full bg-brand" />
-                        {point}
-                      </li>
-                    ))}
-                  </ul>
-                  <Link href={side.href} className="group mt-auto inline-flex w-fit items-center gap-1.5 text-[15px] font-medium underline-offset-4 hover:underline">
-                    {side.cta}
-                    <ArrowRight className="size-4 transition-transform duration-200 ease-ios group-hover:translate-x-0.5" />
-                  </Link>
-                </div>
-              ))}
-            </div>
-          </Wrap>
-        </Screen>
-      </main>
-
-      {/* close and footer as one section: close-word, footer-statement */}
-      <footer className="closing dark relative overflow-hidden bg-[#0e0e10] bg-[radial-gradient(50%_40%_at_50%_105%,rgba(252,76,1,0.28),transparent)] pt-24 pb-10 font-display text-white lg:h-svh lg:pt-[120px]">
-        <Wrap className="flex h-full flex-col">
-          <div className="flex flex-col gap-6">
-            <p className="max-w-[30ch] text-[22px] leading-snug tracking-tight text-white/70 lg:text-[28px]">
-              Built for Smart India Hackathon 2026, problem statement SIH26136, by team CODE REAPERS.
-            </p>
-            <PrimaryActions />
-          </div>
-          <div className="mt-16 flex flex-col lg:mt-10">
-          <div className="grid gap-6 border-t border-white/10 pt-10 sm:grid-cols-3">
-            <nav aria-label="Explore" className="flex flex-col gap-1">
-              <p className="mb-2 text-[13px] text-white/45">Explore</p>
-              {navigationFor(null).map((item) => (
-                <Link key={item.href} href={item.href} className="flex min-h-11 w-fit items-center text-[15px] text-white/75 transition-colors hover:text-white">
-                  {item.label}
-                </Link>
-              ))}
-            </nav>
-            <div className="flex flex-col gap-1">
-              <p className="mb-2 text-[13px] text-white/45">Accounts</p>
-              <Link href="/signin" className="flex min-h-11 w-fit items-center text-[15px] text-white/75 transition-colors hover:text-white">
-                Sign in
-              </Link>
-              <Link href="/startup" className="flex min-h-11 w-fit items-center text-[15px] text-white/75 transition-colors hover:text-white">
-                Startup profile
-              </Link>
-            </div>
-            <p className="self-end text-[13px] text-white/70">PramaanSetu, 2026</p>
-          </div>
-          <div aria-hidden className="mt-8 select-none lg:mt-10">
-            <span className="text-[56px] leading-none font-medium tracking-[-0.05em] text-white sm:text-[96px] lg:text-[112px]">PramaanSetu</span>
-          </div>
           </div>
         </Wrap>
+      </section>
+
+      {/* ------------------------------------------------------------ chapters */}
+      <section className="relative py-24 lg:py-36">
+        <Wrap className="flex flex-col gap-14 lg:gap-20">
+          <div className="grid gap-8 lg:grid-cols-12 lg:items-end">
+            <div className="lg:col-span-7">
+              <Eyebrow className="mb-5 text-cobalt">Five records</Eyebrow>
+              <h2 className="max-w-[17ch] font-serif text-[44px] leading-[1.02] tracking-[-0.035em] sm:text-[64px]">From a problem to a purchase order</h2>
+            </div>
+            <p className="max-w-[46ch] text-[17px] leading-[1.6] text-ink/65 lg:col-span-4 lg:col-start-9">
+              Each stage leaves one record behind. The next stage cannot open until that record exists and a named official has accepted it.
+            </p>
+          </div>
+          <Chapters chapters={chapters} />
+        </Wrap>
+      </section>
+
+      {/* -------------------------------------------------------------- ledger */}
+      <section className="relative border-t border-ink/10 bg-paper-2/60 py-24 lg:py-32">
+        <Wrap className="flex flex-col gap-12">
+          <div className="grid gap-8 lg:grid-cols-12 lg:items-end">
+            <div className="lg:col-span-7">
+              <Eyebrow className="mb-5 text-cobalt">Open challenges</Eyebrow>
+              <h2 className="font-serif text-[44px] leading-[1.02] tracking-[-0.035em] sm:text-[64px]">
+                {open.length} problems, <span className="text-ink/40">waiting for a startup</span>
+              </h2>
+            </div>
+            <div className="flex flex-col gap-5 lg:col-span-4 lg:col-start-9">
+              <p className="max-w-[44ch] text-[17px] leading-[1.6] text-ink/65">Each states its measure, its baseline and its budget ceiling. Turnover is never the first filter.</p>
+              <TextLink href="/challenges-board" className="text-cobalt">
+                The full challenge board
+              </TextLink>
+            </div>
+          </div>
+          <ol className="border-t border-ink/15">
+            {open.slice(0, 6).map((challenge) => (
+              <li key={challenge.id} className="border-b border-ink/15">
+                <Link
+                  href={"/challenges-board/" + challenge.id}
+                  className="group grid grid-cols-[1fr_auto] items-center gap-x-6 gap-y-2 py-6 outline-none focus-visible:bg-paper lg:grid-cols-[110px_minmax(0,1fr)_minmax(0,0.7fr)_130px_100px_32px] lg:py-7"
+                >
+                  <span className="hidden font-mono text-[12px] text-ink/45 lg:block">{challenge.reference}</span>
+                  <span className="col-span-2 font-serif text-[22px] leading-[1.2] tracking-[-0.015em] text-pretty transition-colors group-hover:text-cobalt sm:text-[26px] lg:col-span-1">{challenge.title}</span>
+                  <span className="text-[14px] leading-snug text-ink/55">
+                    {challenge.department_name ? shortDepartment(challenge.department_name) : "Department"}
+                    {challenge.sector && <span className="block font-mono text-[11.5px] tracking-wide text-ink/40 uppercase">{challenge.sector}</span>}
+                  </span>
+                  <span className="text-right font-mono text-[14px] tabular-nums lg:text-left">{rupeesShort(challenge.budget_ceiling?.display)}</span>
+                  <span className="hidden font-mono text-[13px] text-ink/55 lg:block">{challenge.days_remaining != null ? challenge.days_remaining + " days left" : "Open"}</span>
+                  <ArrowUpRight className="hidden size-5 text-ink/35 transition-[translate,color] duration-200 ease-ios group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-cobalt lg:block" />
+                </Link>
+              </li>
+            ))}
+          </ol>
+        </Wrap>
+      </section>
+
+      {/* --------------------------------------------------------------- seals */}
+      <section className="relative overflow-hidden py-24 lg:py-36">
+        <Wrap className="flex flex-col gap-16 lg:gap-24">
+          <div className="grid gap-8 lg:grid-cols-12 lg:items-end">
+            <div className="lg:col-span-8">
+              <Eyebrow className="mb-5 text-vermilion">Signatures</Eyebrow>
+              <h2 className="max-w-[18ch] font-serif text-[44px] leading-[1.02] tracking-[-0.035em] sm:text-[64px]">Nothing moves on a vendor&apos;s word</h2>
+            </div>
+            <p className="max-w-[44ch] text-[17px] leading-[1.6] text-ink/65 lg:col-span-4">
+              Four named officials sign the steps that matter, and every signature lands in a hash-chained audit log that cannot be quietly edited.
+            </p>
+          </div>
+          <SealRow className="grid grid-cols-2 gap-x-6 gap-y-14 lg:grid-cols-4 lg:gap-10">
+            {seals.map((seal, index) => (
+              <figure key={seal.id} className="flex flex-col items-center gap-6 text-center">
+                <div className="seal w-full max-w-[200px] mix-blend-multiply" style={{ ["--seal-turn" as string]: seal.turn, ["--d" as string]: index * 140 + "ms" }}>
+                  <Seal id={seal.id} role={seal.role} act={seal.act} initials={seal.initials} />
+                </div>
+                <figcaption className="flex max-w-[26ch] flex-col gap-1.5">
+                  <span className="font-serif text-[22px] leading-tight">{seal.role}</span>
+                  <span className="text-[14.5px] leading-relaxed text-ink/60">{seal.detail}</span>
+                </figcaption>
+              </figure>
+            ))}
+          </SealRow>
+        </Wrap>
+      </section>
+
+      {/* ----------------------------------------------------------- audiences */}
+      <section className="relative pb-24 lg:pb-36">
+        <Wrap className="grid gap-5 lg:grid-cols-2">
+          {[
+            {
+              eyebrow: "For departments",
+              title: "Buy on evidence you can defend",
+              points: ["Standard pilot terms, and an agreement drafted from the challenge", "A sample size and a budget checked before anyone signs", "A defensible basis to procure, or a clear reason not to"],
+              href: "/signin",
+              cta: "Sign in to your workspace",
+              art: "/art/fort-dots.webp",
+              position: "60% 30%",
+              ground: "bg-cobalt",
+              fade: "from-cobalt via-cobalt/75 to-cobalt/20",
+            },
+            {
+              eyebrow: "For startups",
+              title: "Get paid on time for what you proved",
+              points: ["Where departmental demand is, by sector and by state", "Who holds your payment, and how long they have left", "A validated result that travels to the next department"],
+              href: "/demand",
+              cta: "See departmental demand",
+              art: "/art/arches-dots.webp",
+              position: "50% 60%",
+              ground: "bg-ink",
+              fade: "from-ink via-ink/70 to-ink/30",
+            },
+          ].map((card) => (
+            <article key={card.eyebrow} className={cn("group relative flex min-h-[560px] flex-col justify-between overflow-hidden rounded-[24px] p-8 text-white sm:p-12", card.ground)}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={card.art} alt="" aria-hidden loading="lazy" className="absolute inset-0 size-full object-cover opacity-45 transition-transform duration-700 ease-out-soft group-hover:scale-[1.03]" style={{ objectPosition: card.position }} />
+              <div className={cn("absolute inset-0 bg-gradient-to-b", card.fade)} aria-hidden />
+              <div className="relative flex flex-col gap-5">
+                <Eyebrow className="text-white/60">{card.eyebrow}</Eyebrow>
+                <h3 className="max-w-[14ch] font-serif text-[40px] leading-[1.04] tracking-[-0.03em] sm:text-[52px]">{card.title}</h3>
+              </div>
+              <div className="relative flex flex-col gap-8">
+                <ul className="flex flex-col">
+                  {card.points.map((point) => (
+                    <li key={point} className="border-t border-white/20 py-3.5 text-[15.5px] leading-snug text-white/85">
+                      {point}
+                    </li>
+                  ))}
+                </ul>
+                <PrimaryButton href={card.href} className="w-fit">
+                  {card.cta}
+                </PrimaryButton>
+              </div>
+            </article>
+          ))}
+        </Wrap>
+      </section>
+
+      {/* --------------------------------------------------------------- close */}
+      <section className="relative overflow-hidden bg-cobalt">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/art/ghat-dots.webp" alt="" aria-hidden loading="lazy" className="absolute inset-0 size-full object-cover object-[60%_55%]" />
+        <Wrap className="relative py-20 lg:py-32">
+          <div className="max-w-[640px] rounded-[20px] bg-paper p-8 shadow-[0_40px_100px_-30px_rgba(5,10,45,0.6)] sm:p-12">
+            <h2 className="font-serif text-[48px] leading-[0.98] tracking-[-0.04em] sm:text-[72px]">
+              Bring the next problem. <span className="text-ink/40">Leave with evidence.</span>
+            </h2>
+            <p className="mt-6 max-w-[44ch] text-[17px] leading-[1.6] text-ink/65">Officers, panel members, validators and founders all sign in to the same workspace and see what is waiting for them.</p>
+            <div className="mt-9 flex flex-wrap items-center gap-x-6 gap-y-4">
+              <PrimaryButton href="/signin" tone="ink">
+                Sign in to your workspace
+              </PrimaryButton>
+              <TextLink href="/challenges-board" className="text-ink">
+                Browse challenges
+              </TextLink>
+            </div>
+          </div>
+        </Wrap>
+      </section>
+
+      {/* -------------------------------------------------------------- footer */}
+      <footer className="relative overflow-hidden bg-paper pt-20">
+        <Wrap className="flex flex-col gap-16">
+          <div className="grid grid-cols-2 gap-12 lg:grid-cols-12">
+            <div className="col-span-2 flex flex-col gap-4 lg:col-span-5">
+              <p className="max-w-[34ch] font-serif text-[26px] leading-[1.2] tracking-[-0.015em]">Startup pilots for government departments, decided on measured evidence.</p>
+              <p className="max-w-[44ch] text-[14px] leading-relaxed text-ink/55">Built for Smart India Hackathon 2026, problem statement SIH26136, by team CODE REAPERS.</p>
+            </div>
+            {[
+              { heading: "Explore", links: NAV },
+              {
+                heading: "Workspace",
+                links: [
+                  { href: "/signin", label: "Sign in" },
+                  { href: "/startup", label: "Startup profile" },
+                  { href: "/home", label: "My tasks" },
+                ],
+              },
+            ].map((column, index) => (
+              <div key={column.heading} className={cn("flex flex-col gap-4", index === 0 ? "lg:col-span-2 lg:col-start-8" : "lg:col-span-2")}>
+                <p className="font-serif text-[19px]">{column.heading}</p>
+                <ul className="flex flex-col">
+                  {column.links.map((link) => (
+                    <li key={link.href}>
+                      <Link href={link.href} className="inline-flex min-h-[40px] items-center text-[14.5px] text-ink/60 underline-offset-4 transition-colors hover:text-ink hover:underline">
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+          <div className="flex flex-col gap-3 border-t border-ink/12 pt-6 text-[12.5px] leading-relaxed text-ink/45 sm:flex-row sm:justify-between">
+            <p className="max-w-[90ch]">
+              Pictures: Thomas and William Daniell, aquatints and paintings of Indian bridges and ghats, 1790s to 1800s, public domain, from the Yale Center for British Art, the British Library and the National Gallery via Wikimedia Commons.
+            </p>
+            <p className="shrink-0">PramaanSetu, 2026</p>
+          </div>
+        </Wrap>
+        <div className="relative mt-10 select-none" aria-hidden>
+          <p className="mx-auto max-w-[1320px] px-5 font-devanagari text-[clamp(22px,3vw,40px)] text-vermilion sm:px-8 lg:px-12">प्रमाणसेतु</p>
+          <p className="-mb-[0.2em] text-center font-serif text-[clamp(40px,16.4vw,284px)] leading-[0.9] tracking-[-0.055em] text-ink">PramaanSetu</p>
+        </div>
       </footer>
-    </>
+    </div>
   );
 }

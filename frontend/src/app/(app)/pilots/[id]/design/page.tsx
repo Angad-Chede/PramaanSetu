@@ -251,14 +251,14 @@ export default async function DesignPage({ params, searchParams }: Props) {
                     <div className="grid gap-3 sm:grid-cols-2">
                       <div className="flex flex-col gap-1.5 rounded-2xl bg-surface/70 p-4">
                         <span className="text-[13px] font-medium text-muted-foreground">Smallest detectable change</span>
-                        <span className="font-display text-[26px] leading-none font-semibold tracking-tight tabular-nums">
+                        <span className="font-serif text-[30px] leading-none font-normal tracking-[-0.025em] tabular-nums">
                           {decimal(results.proposed.minimum_detectable_effect, 2)}
                         </span>
                         <span className="text-[12px] text-muted-foreground">{unit}</span>
                       </div>
                       <div className="flex flex-col gap-1.5 rounded-2xl bg-surface/70 p-4">
                         <span className="text-[13px] font-medium text-muted-foreground">Expected cost</span>
-                        <span className="font-display text-[26px] leading-none font-semibold tracking-tight tabular-nums">
+                        <span className="font-serif text-[30px] leading-none font-normal tracking-[-0.025em] tabular-nums">
                           <span className="mr-1 text-sm font-medium text-muted-foreground">INR</span>
                           {compactRupees(results.proposed.expected_cost_paise).replace("INR ", "")}
                         </span>

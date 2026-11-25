@@ -169,13 +169,13 @@ export default async function DecisionPage({ params, searchParams }: Props) {
                 </span>
                 <div className="flex flex-col gap-1">
                   <span className="text-[13px] font-medium text-muted-foreground">The decision on record</span>
-                  <span className="font-display text-3xl font-semibold tracking-tight">{recorded?.title ?? existing.decision}</span>
+                  <span className="font-serif text-[32px] font-normal tracking-[-0.025em]">{recorded?.title ?? existing.decision}</span>
                   <span className="text-[13px] text-muted-foreground">Recorded {formatDateTime(existing.decided_at)}</span>
                 </div>
               </div>
               <div className="flex flex-col md:items-end">
                 <span className="text-[13px] font-medium text-muted-foreground">Estimated scale-up value</span>
-                <span className="font-display text-3xl font-semibold tracking-tight tabular-nums">{compactRupees(existing.estimated_value.paise).replace("INR ", "₹ ")}</span>
+                <span className="font-serif text-[32px] font-normal tracking-[-0.025em] tabular-nums">{compactRupees(existing.estimated_value.paise).replace("INR ", "₹ ")}</span>
                 <span className="text-[13px] text-muted-foreground tabular-nums">{money(existing.estimated_value)}</span>
               </div>
             </div>
@@ -437,7 +437,7 @@ export default async function DecisionPage({ params, searchParams }: Props) {
                 </div>
                 <div className="flex flex-col gap-1">
                   <span className="text-[13px] text-muted-foreground">{String(analysis.primary_kpi_name ?? "")}</span>
-                  <span className="font-display text-2xl font-semibold tracking-tight tabular-nums">
+                  <span className="font-serif text-[30px] font-normal tracking-[-0.025em] tabular-nums">
                     {signed(Number(analysis.effect), 3)} <span className="text-sm font-normal text-muted-foreground">{String(analysis.primary_kpi_unit ?? "")}</span>
                   </span>
                 </div>
@@ -491,7 +491,7 @@ function ProjectionView({ projection, title, className }: { projection: Projecti
               {item.label}
               {item.highlight && <ToneBadge tone="brand" dot={false}>{item.note}</ToneBadge>}
             </span>
-            <span className="font-display text-2xl font-semibold tracking-tight tabular-nums">{decimal(item.benefit, 1)}</span>
+            <span className="font-serif text-[30px] font-normal tracking-[-0.025em] tabular-nums">{decimal(item.benefit, 1)}</span>
             <span className="text-[12px] leading-snug text-muted-foreground">{projection.benefit_unit}</span>
             {item.money != null && <span className="mt-1 text-[13px] font-medium tabular-nums">{compactRupees(item.money)} benefit</span>}
           </div>

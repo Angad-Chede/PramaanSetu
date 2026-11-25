@@ -128,7 +128,7 @@ export function PageHeader({
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div className="flex min-w-0 flex-col gap-2">
           {eyebrow && <div className="flex flex-wrap items-center gap-2 text-[13px] font-medium text-muted-foreground">{eyebrow}</div>}
-          <h1 className="font-display text-2xl font-semibold tracking-tight text-balance text-foreground md:text-[32px] md:leading-[1.15]">{title}</h1>
+          <h1 className="font-serif text-[30px] leading-[1.1] tracking-[-0.025em] text-balance text-foreground md:text-[40px] md:leading-[1.05]">{title}</h1>
           {description && <p className="max-w-[68ch] text-[15px] leading-relaxed text-pretty text-muted-foreground">{description}</p>}
           {meta && <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-2 text-[13px] text-muted-foreground">{meta}</div>}
         </div>
@@ -226,7 +226,7 @@ export function Figure({
           </span>
         )}
       </div>
-      <div className="font-display text-[28px] leading-none font-semibold tracking-tight text-foreground tabular-nums">{value}</div>
+      <div className="font-serif text-[34px] leading-none tracking-[-0.03em] text-foreground tabular-nums">{value}</div>
       {hint && <div className="text-[13px] leading-snug text-muted-foreground">{hint}</div>}
     </div>
   );

@@ -33,7 +33,7 @@ function ScoreChip({ score, provisional }: { score: number | null | undefined; p
   if (score === null || score === undefined) return <span className="text-[13px] text-muted-foreground">{provisional ? "Not computed" : "No score issued"}</span>;
   return (
     <span className="flex items-baseline gap-1">
-      <span className="font-display text-2xl font-semibold tracking-tight tabular-nums">{decimal(score, 0)}</span>
+      <span className="font-serif text-[30px] font-normal tracking-[-0.025em] tabular-nums">{decimal(score, 0)}</span>
       <span className="text-[12px] text-muted-foreground">/100{provisional ? " provisional" : ""}</span>
     </span>
   );

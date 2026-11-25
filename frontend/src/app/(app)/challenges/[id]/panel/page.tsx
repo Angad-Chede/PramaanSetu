@@ -273,7 +273,7 @@ export default async function PanelPage({ params, searchParams }: Props) {
               <Panel title="Scoring progress" description="A declared conflict removes that application from the evaluator's list.">
                 <div className="flex flex-col gap-3">
                   <div className="flex items-baseline gap-2">
-                    <span className="font-display text-4xl font-semibold tracking-tight tabular-nums">
+                    <span className="font-serif text-[40px] font-normal tracking-[-0.03em] tabular-nums">
                       {totals.total ? Math.round((totals.scored / totals.total) * 100) : 0}%
                     </span>
                     <span className="text-sm text-muted-foreground">of score sheets in</span>

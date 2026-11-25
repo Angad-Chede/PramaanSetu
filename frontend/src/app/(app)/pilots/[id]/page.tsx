@@ -195,7 +195,7 @@ export default async function PilotPage({ params, searchParams }: Props) {
                 />
                 <div className="flex flex-col justify-between gap-3 rounded-2xl bg-surface/70 p-4">
                   <span className="text-[13px] font-medium text-muted-foreground">Data completeness</span>
-                  <span className="font-display text-[26px] leading-none font-semibold tracking-tight tabular-nums">
+                  <span className="font-serif text-[30px] leading-none font-normal tracking-[-0.025em] tabular-nums">
                     {completeness}
                     <span className="text-base text-muted-foreground"> percent</span>
                   </span>
@@ -370,7 +370,7 @@ export default async function PilotPage({ params, searchParams }: Props) {
                     {totalPaise ? Math.round((paidPaise / totalPaise) * 100) : 0}%
                   </span>
                 </div>
-                <span className="font-display text-2xl font-semibold tracking-tight tabular-nums">{money({ paise: paidPaise })}</span>
+                <span className="font-serif text-[30px] font-normal tracking-[-0.025em] tabular-nums">{money({ paise: paidPaise })}</span>
                 <Meter value={paidPaise} max={totalPaise || 1} tone="brand" label="Share of the pilot value paid" />
                 <span className="text-[12px] text-muted-foreground tabular-nums">of {pilot.total_value ? money(pilot.total_value) : "a value not yet set"}</span>
               </div>
@@ -523,7 +523,7 @@ function ProgressFigure({ label, value, of, tone }: { label: string; value: numb
   return (
     <div className="flex flex-col justify-between gap-3 rounded-2xl bg-surface/70 p-4">
       <span className="text-[13px] font-medium text-muted-foreground">{label}</span>
-      <span className="font-display text-[26px] leading-none font-semibold tracking-tight tabular-nums">
+      <span className="font-serif text-[30px] leading-none font-normal tracking-[-0.025em] tabular-nums">
         {value.toLocaleString("en-IN")}
         <span className="text-base text-muted-foreground"> of {of.toLocaleString("en-IN")}</span>
       </span>

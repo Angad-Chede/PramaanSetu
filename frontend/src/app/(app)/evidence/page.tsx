@@ -158,7 +158,7 @@ function PassportCard({ passport, href }: { passport: Passport; href: string | n
           <div className="flex flex-col gap-1">
             <span className="text-[12px] text-muted-foreground">{String(result.measure)}</span>
             <div className="flex items-baseline gap-2">
-              <span className={cn("font-display text-2xl font-semibold tracking-tight tabular-nums", better ? "text-success-ink" : better === false ? "text-destructive-ink" : "text-foreground")}>
+              <span className={cn("font-serif text-[30px] font-normal tracking-[-0.025em] tabular-nums", better ? "text-success-ink" : better === false ? "text-destructive-ink" : "text-foreground")}>
                 {signed(effect, 2)}
               </span>
               {result.relative_effect_percent != null && (

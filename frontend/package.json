@@ -13,6 +13,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
+    "geist": "^1.9.2",
     "input-otp": "^1.4.2",
     "lucide-react": "^1.20.0",
     "motion": "^12.40.0",

@@ -201,7 +201,7 @@ export default async function ValidatorWorkspacePage({ params, searchParams }: P
                   <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                     <span className="font-display text-xl text-muted-foreground tabular-nums">{decimal(baseline, 2)}</span>
                     <ArrowRight className="size-4 self-center text-glyph" />
-                    <span className="font-display text-4xl font-semibold tracking-tight tabular-nums">{decimal(pilotMean, 2)}</span>
+                    <span className="font-serif text-[40px] font-normal tracking-[-0.03em] tabular-nums">{decimal(pilotMean, 2)}</span>
                     <span className="text-sm text-muted-foreground">{unit}</span>
                     <span className="flex flex-wrap gap-1.5 sm:ml-auto">
                       <ToneBadge tone="neutral" dot={false}>

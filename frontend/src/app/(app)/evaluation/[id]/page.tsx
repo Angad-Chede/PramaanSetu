@@ -309,7 +309,7 @@ export default async function EvaluationWorkspacePage({ params, searchParams }: 
             <Panel>
               <div className="flex flex-col gap-4">
                 <div className="flex items-baseline gap-2">
-                  <span className="font-display text-4xl font-semibold tracking-tight tabular-nums">{pending.length}</span>
+                  <span className="font-serif text-[40px] font-normal tracking-[-0.03em] tabular-nums">{pending.length}</span>
                   <span className="text-sm text-muted-foreground">still to score</span>
                 </div>
                 {workspace.challenge.evaluation_deadline ? (

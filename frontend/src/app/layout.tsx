@@ -1,5 +1,8 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, JetBrains_Mono, Reddit_Sans } from "next/font/google";
+import { Tiro_Devanagari_Hindi } from "next/font/google";
+import { GeistMono } from "geist/font/mono";
+import { GeistSans } from "geist/font/sans";
+import { GeistSerif } from "geist/font/serif";
 import { Toaster } from "@/components/ui/sonner";
 
 import { NavProgress } from "@/components/app/nav-progress";
@@ -9,9 +12,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
-const display = Reddit_Sans({ subsets: ["latin"], variable: "--font-display-face" });
-const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-geist-mono" });
+// the name in Devanagari, set once on the landing page; not preloaded elsewhere
+const devanagari = Tiro_Devanagari_Hindi({ subsets: ["devanagari"], weight: "400", variable: "--font-tiro", preload: false });
 
 export const metadata: Metadata = {
   title: { default: "PramaanSetu", template: "%s | PramaanSetu" },
@@ -37,7 +39,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} ${display.variable} ${mono.variable} min-h-dvh font-sans`}>
+      <body className={`${GeistSans.variable} ${GeistSerif.variable} ${GeistMono.variable} ${devanagari.variable} min-h-dvh font-sans`}>
         <NavProgress />
         <WarmUp />
         <ThemeProvider>

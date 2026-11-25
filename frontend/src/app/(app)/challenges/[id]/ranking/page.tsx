@@ -234,7 +234,7 @@ export default async function RankingPage({ params, searchParams }: Props) {
                           <h3 className="truncate font-display text-[15px] font-semibold tracking-tight">{row.blind_label}</h3>
                           <p className="font-mono text-[12px] text-muted-foreground">{row.reference}</p>
                         </div>
-                        <span className="font-display text-2xl font-semibold tracking-tight tabular-nums">
+                        <span className="font-serif text-[30px] font-normal tracking-[-0.025em] tabular-nums">
                           {decimal(row.weighted_score, 1)}
                           <span className="ml-0.5 text-[12px] font-normal text-muted-foreground">/100</span>
                         </span>

@@ -47,7 +47,7 @@ export default async function SignInPage({ searchParams }: Props) {
 
         <main id="main" className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-8 py-12">
           <div className="flex flex-col gap-2 animate-enter">
-            <h1 className="font-display text-3xl font-semibold tracking-tight text-balance">
+            <h1 className="font-serif text-[40px] leading-[1.05] font-normal tracking-[-0.03em] text-balance">
               {step === "code" ? "Check your inbox" : "Sign in to PramaanSetu"}
             </h1>
             <p className="text-[15px] leading-relaxed text-muted-foreground">
@@ -110,18 +110,19 @@ export default async function SignInPage({ searchParams }: Props) {
         </main>
       </div>
 
-      <aside className="relative overflow-hidden bg-[#0e0e10] px-5 py-10 text-white sm:px-10 lg:m-3 lg:rounded-[28px] lg:py-12">
-        <div aria-hidden className="pointer-events-none absolute -top-40 -right-40 size-[520px] rounded-full bg-[radial-gradient(closest-side,rgba(252,76,1,0.35),transparent)]" />
-        <div aria-hidden className="bg-grid pointer-events-none absolute inset-0 opacity-[0.35] [mask-image:radial-gradient(ellipse_at_top_right,black,transparent_70%)] [--foreground:#fff]" />
+      <aside className="relative overflow-hidden bg-cobalt px-5 py-10 text-white sm:px-10 lg:m-3 lg:rounded-[28px] lg:py-12">
+        {/* the landing page's bridge, carried through to the door */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/art/bridge-dots.webp" alt="" aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-[55%] w-full object-cover object-bottom opacity-80 [mask-image:linear-gradient(to_bottom,transparent,#000_55%)]" />
         <div className="relative flex h-full flex-col gap-8">
           <div className="flex items-center gap-3">
             <BrandMark className="size-9" />
             <div>
               <p className="text-[13px] font-medium text-white/60">Demonstration</p>
-              <h2 className="font-display text-xl font-semibold tracking-tight">Walk the workflow as anyone</h2>
+              <h2 className="font-serif text-[26px] leading-tight tracking-[-0.02em]">Walk the workflow as anyone</h2>
             </div>
           </div>
-          <p className="max-w-md text-[15px] leading-relaxed text-white/65">
+          <p className="max-w-md text-[15px] leading-relaxed text-white/75">
             Each account below comes from the seed data. Pick one to sign in straight away and see the platform through that role.
           </p>
           <ul className="grid gap-2.5 sm:grid-cols-2">
@@ -135,7 +136,7 @@ export default async function SignInPage({ searchParams }: Props) {
               </li>
             ))}
           </ul>
-          <div className="mt-auto flex items-center gap-2 text-[12px] text-white/45">
+          <div className="mt-auto flex items-center gap-2 rounded-xl bg-cobalt-deep/50 px-3 py-2.5 text-[12px] text-white/75 backdrop-blur-md">
             <Landmark className="size-3.5" />
             Startup accounts are listed under Users in the admin console. Seeded passwords: PramaanSetu@2026
           </div>

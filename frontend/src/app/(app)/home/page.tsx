@@ -462,7 +462,7 @@ function DepartmentSnapshot({ dashboard, title }: { dashboard: Dashboard; title:
 function MiniFigure({ label, value, alert = false }: { label: string; value: number; alert?: boolean }) {
   return (
     <div className={cn("flex flex-col gap-2 rounded-3xl p-4 shadow-card", alert ? "bg-destructive/8" : "bg-card")}>
-      <span className={cn("font-display text-2xl leading-none font-semibold tracking-tight tabular-nums", alert ? "text-destructive-ink" : "text-foreground")}>
+      <span className={cn("font-serif text-[30px] leading-none font-normal tracking-[-0.025em] tabular-nums", alert ? "text-destructive-ink" : "text-foreground")}>
         {value}
       </span>
       <span className="text-[12px] leading-snug text-muted-foreground">{label}</span>
@@ -488,7 +488,7 @@ function Summary({ label, value, hint, icon: Icon, tone, href }: { label: string
           <Icon className="size-3.5" />
         </span>
       </div>
-      <span className={cn("font-display text-2xl leading-none font-semibold tracking-tight tabular-nums sm:text-[28px]", tone === "destructive" && "text-destructive-ink")}>
+      <span className={cn("font-serif text-[30px] leading-none font-normal tracking-[-0.025em] tabular-nums sm:text-[28px]", tone === "destructive" && "text-destructive-ink")}>
         {value}
       </span>
       <span className="hidden text-[13px] leading-snug text-muted-foreground sm:inline-flex sm:items-center sm:gap-1">
